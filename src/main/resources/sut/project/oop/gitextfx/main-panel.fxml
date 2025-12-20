@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Text?>
+
+<BorderPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="sut.project.oop.gitextfx.controllers.MainPanelController"
+            prefHeight="600.0" prefWidth="1080.0">
+
+    <left>
+        <VBox spacing="8" maxWidth="220">
+            <padding>
+                <Insets top="10" right="10" bottom="10" left="10"/>
+            </padding>
+
+            <VBox spacing="4">
+                <Text style="-fx-font-size: 20px; -fx-font-weight: bold;" fx:id="filenameLabel"/>
+                <Text fx:id="fullpathLabel" style="-fx-font-size: 12px; -fx-font-style: italic;"/>
+            </VBox>
+            <Separator />
+            <Text text="Version History" style="-fx-font-size: 14px; -fx-font-weight: bold;"/>
+            <VBox fx:id="VersionsList"/>
+        </VBox>
+    </left>
+    <center>
+        <VBox spacing="5">
+            <padding>
+                <Insets top="5" right="10" bottom="10" left="10"/>
+            </padding>
+
+            <HBox spacing="10" alignment="CENTER_LEFT">
+                <Label text="Unified Diff" style="-fx-font-size: 14px; -fx-font-weight: bold;"/>
+
+                <!-- Placeholder controls -->
+                <CheckBox text="Show line numbers" disable="true" />
+                <CheckBox text="Ignore whitespace" disable="true" />
+            </HBox>
+
+
+            <!-- Unified diff text area -->
+            <TextArea fx:id="unifiedDiffArea"
+                      editable="false"
+                      VBox.vgrow="ALWAYS"
+                      style="-fx-font-family: 'Consolas';" />
+        </VBox>
+    </center>
+    <right>
+        <VBox spacing="10" prefWidth="220">
+            <padding>
+                <Insets top="10" right="10" bottom="10" left="10"/>
+            </padding>
+
+            <Text text="Version Details" style="-fx-font-size: 16px; -fx-font-weight: bold;" />
+
+            <Separator />
+
+            <GridPane hgap="10" vgap="10">
+                <Label text="Version:" GridPane.rowIndex="0" GridPane.columnIndex="0" />
+                <Label fx:id="versionValue" text="—" GridPane.rowIndex="0" GridPane.columnIndex="1" />
+
+
+                <Label text="Created At:" GridPane.rowIndex="1" GridPane.columnIndex="0" />
+                <Label fx:id="createdAtValue" text="—" GridPane.rowIndex="1" GridPane.columnIndex="1" />
+
+
+                <Label text="Type:" GridPane.rowIndex="2" GridPane.columnIndex="0" />
+                <Label fx:id="typeValue" text="—" GridPane.rowIndex="2" GridPane.columnIndex="1" />
+            </GridPane>
+
+            <Separator />
+
+            <Button text="Use this version" onAction="#onUseThisVersionButtonPressed"/>
+            <Button text="Upload new version" onAction="#onNewVersionButtonPressed"/>
+            <Button fx:id="deleteVersionBtn" text="Delete version" disable="true" onAction="#onDeleteVersionButtonPressed"/>
+        </VBox>
+    </right>
+
+</BorderPane>

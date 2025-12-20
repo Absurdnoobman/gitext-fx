@@ -1,0 +1,157 @@
+package sut.project.oop.gitextfx;
+
+import javafx.application.Application;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Scene;
+import javafx.stage.Stage;
+import sut.project.oop.gitextfx.clazz.CompressionUtil;
+import sut.project.oop.gitextfx.clazz.ErrorDialog;
+import sut.project.oop.gitextfx.clazz.Schema;
+import sut.project.oop.gitextfx.controllers.WelcomeController;
+
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.sql.SQLException;
+
+public class GitextApp extends Application {
+    private void prepareDB(){
+        try (var db = new Schema(AppPath.DB_PATH)) {
+            db.execute("""
+                    CREATE TABLE IF NOT EXISTS Files (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        file_path TEXT NOT NULL,
+                        lasted_edit DATETIME,
+                        non_delta_interval INTEGER DEFAULT 5
+                    );
+                    """);
+            db.execute("""
+                    CREATE TABLE IF NOT EXISTS Versions (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        file_id INTEGER REFERENCES Files(id) ,
+                        parent_id INTEGER,
+                        tag VARCHAR(12) NOT NULL,
+                        is_delta BOOLEAN NOT NULL,
+                        compressed BLOB NOT NULL,
+                        created_at DATETIME NOT NULL DEFAULT (datetime('now'))
+                    );
+                    """);
+
+        } catch (SQLException e) {
+            var is_dev_mode = Boolean.parseBoolean(System.getProperty("dev"));
+
+            if (is_dev_mode) {
+                ErrorDialog.showDevException(e, "cannot execute database operations");
+            } else {
+                ErrorDialog.showException("cannot execute database operations");
+            }
+        }
+    }
+
+    ///
+    ///
+    /// @return <code>true</code> if a new folder has been created or the folder already existed
+    private boolean prepareFiles() {
+        if (Files.exists(Path.of(AppPath.DB_PATH))) {
+            return false;
+        }
+
+        if (!Files.exists(Path.of(AppPath.APP_PATH)) && !new File(AppPath.DB_PATH).mkdir()) {
+            ErrorDialog.showException("Cannot Create a dir");
+            return false;
+        }
+
+        return true;
+    }
+
+    /// Seed Database
+    private void seedDB() {
+        try (var db = new Schema()){
+            db.execute("""
+                    DROP TABLE Versions;
+                    """);
+            db.execute("""
+                    DROP TABLE Files;
+                    """);
+
+            db.execute("""
+                    CREATE TABLE IF NOT EXISTS Files (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        file_path TEXT NOT NULL,
+                        lasted_edit DATETIME,
+                        non_delta_interval INTEGER DEFAULT 5
+                    );
+                    """);
+            db.execute("""
+                    CREATE TABLE IF NOT EXISTS Versions (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        file_id INTEGER REFERENCES Files(id) ,
+                        parent_id INTEGER,
+                        tag VARCHAR(12) NOT NULL,
+                        is_delta BOOLEAN NOT NULL,
+                        compressed BLOB NOT NULL,
+                        created_at DATETIME NOT NULL DEFAULT (datetime('now'))
+                    );
+                    """);
+
+            db.execute("""
+                    INSERT INTO Files (file_path, lasted_edit, non_delta_interval)
+                    VALUES ('C:\\Users\\walter\\Documents\\game_parliament_session.txt', datetime('now'), 5);
+                    """);
+
+            FileReader reader = new FileReader("C:\\Users\\walter\\Documents\\game_parliament_session.txt");
+            String raw = reader.readAllAsString();
+            reader.close();
+
+            byte[] compressed = CompressionUtil.compress(raw);
+
+            var is_success = db.execute("""
+                    INSERT INTO Versions (file_id, parent_id, tag, is_delta, compressed, created_at)
+                    VALUES ( 1, NULL, ?, FALSE, ?, datetime('now') )
+                    """,
+                    "First version", compressed
+            );
+
+            if (!is_success) ErrorDialog.showException("Can not insert.");
+        } catch (SQLException e) {
+            var is_dev_mode = Boolean.parseBoolean(System.getProperty("dev"));
+
+            if (is_dev_mode) {
+                ErrorDialog.showDevException(e, "cannot execute database operations");
+            } else {
+                ErrorDialog.showException("cannot execute database operations");
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public void start(Stage stage) throws IOException {
+        var is_new = prepareFiles();
+        if (is_new) prepareDB();
+
+        seedDB();
+
+        var fxmlLoader = new FXMLLoader(GitextApp.class.getResource("welcome-view.fxml"));
+        var scene = new Scene(fxmlLoader.load(), 600, 400);
+
+        ((WelcomeController) fxmlLoader.getController()).stage = stage;
+
+        try (var db = new Schema()){
+
+            var result = db.table("Files").select("*").getAsList();
+            ((WelcomeController) fxmlLoader.getController()).onReady(result);
+
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+
+        stage.setTitle("demo");
+        stage.setScene(scene);
+        stage.show();
+
+    }
+}

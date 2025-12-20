@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Text?>
+<VBox prefHeight="400.0" prefWidth="600.0"
+      xmlns="http://javafx.com/javafx/17.0.12"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="sut.project.oop.gitextfx.controllers.WelcomeController">
+
+    <padding>
+        <Insets bottom="12" left="12" right="12" top="12" />
+    </padding>
+
+    <HBox spacing="12" HBox.hgrow="ALWAYS">
+        <Text style="-fx-font-family: 'Inter'; -fx-font-size: 26px;" text="Your Files" />
+        <Region HBox.hgrow="ALWAYS" />
+        <Button onAction="#onAddFileButtonPressed">Add file</Button>
+        <padding>
+            <Insets bottom="12" />
+        </padding>
+    </HBox>
+
+    <ScrollPane VBox.vgrow="ALWAYS">
+        <VBox fx:id="FileListVBox" spacing="4">
+        </VBox>
+    </ScrollPane>
+    
+</VBox>
