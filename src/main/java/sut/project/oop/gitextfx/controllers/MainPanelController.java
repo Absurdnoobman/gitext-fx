@@ -20,6 +20,7 @@ import sut.project.oop.gitextfx.models.VersionTag;
 
 import javax.swing.*;
 import java.io.*;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -312,19 +313,21 @@ public class MainPanelController {
         VersionTag last_major_tag = tags.stream().filter(tag -> !tag.is_delta() ).toList().getLast();
 
         Path old_path = null;
+        boolean is_parent_exist = false;
         try (var db = new Schema()) {
             ResultSet rs = db.table("Files").select("file_path").where("id", "=", fileId).get();
             String path_str = rs.getString(1);
             old_path = Path.of(path_str);
+            is_parent_exist = Files.exists(old_path.getParent());
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(null, "Can not get the old file path for some reason.", "Warning", JOptionPane.WARNING_MESSAGE);
         }
 
         FileChooser dialog = new FileChooser();
         dialog.setTitle("Save a file");
-        dialog.setInitialDirectory(old_path == null ? AppPath.DOCUMENT_FILE : new File(old_path.getParent().toString()));
+        dialog.setInitialDirectory(old_path == null || !is_parent_exist ? AppPath.DOCUMENT_FILE : new File(old_path.getParent().toString()));
         dialog.getExtensionFilters().add(new FileChooser.ExtensionFilter("text file", "*.txt"));
-        dialog.setInitialFileName(old_path == null ? "%s.txt".formatted(versionValue.getText()) : old_path.getFileName().toString());
+        dialog.setInitialFileName(old_path == null || !is_parent_exist ? "%s.txt".formatted(versionValue.getText()) : old_path.getFileName().toString());
 
         var file  = dialog.showSaveDialog(null);
 

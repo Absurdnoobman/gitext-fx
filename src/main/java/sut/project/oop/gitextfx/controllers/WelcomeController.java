@@ -125,4 +125,20 @@ public class WelcomeController {
         stage.close();
 
     }
+
+    @FXML
+    private void onSettingPressed() {
+        FXMLLoader loader = new FXMLLoader(GitextApp.class.getResource("setting-view.fxml"));
+
+        try {
+            var scene = new Scene(loader.load());
+            Stage new_stage = new Stage();
+            new_stage.setTitle("Setting");
+            new_stage.setScene(scene);
+            new_stage.show();
+        } catch (IOException e) {
+            ErrorDialog.showException("Can not open menu.");
+        }
+
+    }
 }
