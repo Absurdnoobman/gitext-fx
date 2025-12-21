@@ -9,12 +9,11 @@ import sut.project.oop.gitextfx.clazz.ErrorDialog;
 import sut.project.oop.gitextfx.clazz.Schema;
 import sut.project.oop.gitextfx.controllers.WelcomeController;
 
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.sql.SQLException;
+import java.util.Properties;
 
 public class GitextApp extends Application {
     private void prepareDB(){
@@ -52,9 +51,12 @@ public class GitextApp extends Application {
 
     ///
     ///
-    /// @return <code>true</code> if a new folder has been created or the folder already existed
-    private boolean prepareFiles() {
-        if (Files.exists(Path.of(AppPath.DB_PATH))) {
+    /// @return <code>true</code> if a new folder or a new setting file has been created or the folder already existed
+    private boolean prepareFiles() throws IOException {
+        var is_setting_exist = Files.exists(Path.of(AppPath.PROP_PATH));
+        var is_db_exist = Files.exists(Path.of(AppPath.DB_PATH));
+
+        if (is_setting_exist && is_db_exist) {
             return false;
         }
 
@@ -62,6 +64,12 @@ public class GitextApp extends Application {
             ErrorDialog.showException("Cannot Create a dir");
             return false;
         }
+
+        var setting = new Properties();
+        setting.setProperty("deleteNewVersionFile", "true");
+        setting.setProperty("defaultNonDeltaInterval", "5");
+
+        setting.storeToXML(new FileOutputStream(AppPath.PROP_PATH), "new setting file.");
 
         return true;
     }
@@ -130,8 +138,13 @@ public class GitextApp extends Application {
 
     @Override
     public void start(Stage stage) throws IOException {
-        var is_new = prepareFiles();
-        if (is_new) prepareDB();
+        try {
+            var is_new = prepareFiles();
+            if (is_new) prepareDB();
+        } catch (IOException e) {
+            ErrorDialog.showDevException(e , "Can not the nessecery prepare to create app folder and setting file.");
+            return;
+        }
 
         seedDB();
 
