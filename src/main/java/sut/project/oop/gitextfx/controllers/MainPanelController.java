@@ -45,7 +45,7 @@ public class MainPanelController {
     public Label typeValue;
     @FXML
     public Button deleteVersionBtn;
-    private List<VersionTag> tags = new ArrayList<>();
+    private final List<VersionTag> tags = new ArrayList<>();
 
     private Version SelectedVersion = null;
 
@@ -92,9 +92,7 @@ public class MainPanelController {
 
         for (var v: tags) {
             var txt = new Text(v.tag());
-            txt.setOnMouseClicked(_ -> {
-                renderVersion(v.row_id());
-            });
+            txt.setOnMouseClicked(_ -> renderVersion(v.row_id()));
             VersionsList.getChildren().add(txt);
         }
     }
@@ -253,7 +251,7 @@ public class MainPanelController {
 
         VersionTag last_major_tag = tags.stream().filter(tag -> !tag.is_delta() ).toList().getLast();
 
-        long inserted_id = -1;
+        long inserted_id;
         byte[] compressed;
 
         boolean is_delta;
@@ -573,7 +571,7 @@ public class MainPanelController {
         }
 
         try {
-            final boolean newFile = file.createNewFile(); // newFile is not used.
+            final boolean newFile = file.createNewFile();// newFile is not used.
         } catch (IOException e) {
             ErrorDialog.showDevException(e, "File system error.");
             return;
