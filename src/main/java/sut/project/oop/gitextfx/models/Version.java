@@ -5,12 +5,14 @@ import sut.project.oop.gitextfx.AppDateFormat;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 public class Version extends Model {
     private int id;
     private int fileId;
     private String tag;
     private boolean isDelta;
+    private Integer parentId;
     private byte[] compressed;
     private LocalDateTime createdAt;
 
@@ -46,6 +48,14 @@ public class Version extends Model {
         isDelta = delta;
     }
 
+    public Integer getParentId() {
+        return this.parentId;
+    }
+
+    public void setParentId(int parentId) {
+        this.parentId = parentId;
+    }
+
     public byte[] getCompressed() {
         return compressed;
     }
@@ -66,6 +76,10 @@ public class Version extends Model {
     public void fromResultSet(ResultSet rs) throws SQLException {
         this.id = rs.getInt("id");
         this.fileId = rs.getInt("file_id");
+
+        int pid = rs.getInt("parent_id");
+        this.parentId = rs.wasNull() ? null : pid;
+
         this.tag = rs.getString("tag");
         this.isDelta = rs.getBoolean("is_delta");
         this.compressed = rs.getBytes("compressed");
@@ -75,4 +89,6 @@ public class Version extends Model {
             this.createdAt = LocalDateTime.parse(createdAt, AppDateFormat.SQLITE_DT);
         }
     }
+
+
 }

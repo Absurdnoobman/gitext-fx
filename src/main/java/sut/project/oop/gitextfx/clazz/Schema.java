@@ -8,11 +8,11 @@ public class Schema implements AutoCloseable {
     private static Connection connection;
 
     public Schema() throws SQLException {
-        connection = DriverManager.getConnection("jdbc:sqlite:" + AppPath.DB_PATH);
+        connection = DriverManager.getConnection("jdbc:sqlite:" + AppPath.DB_PATH + "?busy_timeout=5000");
     }
 
     public Schema(String path) throws SQLException {
-        connection = DriverManager.getConnection("jdbc:sqlite:" + path);
+        connection = DriverManager.getConnection("jdbc:sqlite:" + path + "?busy_timeout=5000");
     }
 
     // SELECT raw SQL
