@@ -112,7 +112,7 @@ public class MainPanelController {
             if (!this_version.isDelta()) { // is non-delta version (major)
                 unifiedDiffArea.setText(text);
             } else {
-                var last_major_tag = tags.stream().filter(t -> !t.is_delta() ).toList().getLast();
+                var last_major_tag = tags.stream().filter(t -> !t.is_delta() && t.row_id() < SelectedVersion.getId() ).toList().getLast();
                 var interval = tags.stream().filter(t -> t.row_id() > last_major_tag.row_id() && t.row_id() < id).toList();
 
                 if (interval.size() <= 1) { // next to non-delta version
@@ -502,7 +502,7 @@ public class MainPanelController {
 
     @FXML
     private void onUseThisVersionButtonPressed() {
-        VersionTag last_major_tag = tags.stream().filter( tag -> !tag.is_delta() ).toList().getLast();
+        VersionTag last_major_tag = tags.stream().filter( tag -> !tag.is_delta() && tag.row_id() < SelectedVersion.getId() ).toList().getLast();
 
         Path old_path = null;
         boolean is_parent_exist = false;
