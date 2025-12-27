@@ -12,9 +12,7 @@ import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import sut.project.oop.gitextfx.AppDateFormat;
 import sut.project.oop.gitextfx.AppPath;
-import sut.project.oop.gitextfx.clazz.CompressionUtil;
-import sut.project.oop.gitextfx.clazz.ErrorDialog;
-import sut.project.oop.gitextfx.clazz.Schema;
+import sut.project.oop.gitextfx.clazz.*;
 import sut.project.oop.gitextfx.models.Version;
 import sut.project.oop.gitextfx.models.VersionTag;
 
@@ -107,12 +105,12 @@ public class MainPanelController {
 
             Version this_version = Version.from(result, Version::new);
 
-            String text = CompressionUtil.decompressed(this_version.getCompressed());
+            String text = CompressionUtil.decompress(this_version.getCompressed());
 
             if (!this_version.isDelta()) { // is non-delta version (major)
                 unifiedDiffArea.setText(text);
             } else {
-                var last_major_tag = tags.stream().filter(t -> !t.is_delta() && t.row_id() < SelectedVersion.getId() ).toList().getLast();
+                var last_major_tag = tags.stream().filter(t -> !t.is_delta() && t.row_id() < id ).toList().getLast();
                 var interval = tags.stream().filter(t -> t.row_id() > last_major_tag.row_id() && t.row_id() < id).toList();
 
                 if (interval.size() <= 1) { // next to non-delta version
@@ -128,7 +126,7 @@ public class MainPanelController {
 
                     byte[] compressed = rs.getBytes(1);
 
-                    String patch_decompressed = CompressionUtil.decompressed(compressed);
+                    String patch_decompressed = CompressionUtil.decompress(compressed);
 
                     rs.close();
 
@@ -140,7 +138,7 @@ public class MainPanelController {
 
                     compressed = rs.getBytes(1);
 
-                    String major_content = CompressionUtil.decompressed(compressed);
+                    String major_content = CompressionUtil.decompress(compressed);
 
                     Patch<String> patch = UnifiedDiffUtils.parseUnifiedDiff(
                             Arrays.asList(patch_decompressed.split("\n", -1))
@@ -150,7 +148,7 @@ public class MainPanelController {
 
                     List<String> previous_content_lines = patch.applyTo(major_lines);
 
-                    var this_version_content = CompressionUtil.decompressed(this_version.getCompressed());
+                    var this_version_content = CompressionUtil.decompress(this_version.getCompressed());
                     List<String> this_version_lines = this_version_content.lines().toList();
 
                     patch = DiffUtils.diff(previous_content_lines, this_version_lines);
@@ -280,7 +278,7 @@ public class MainPanelController {
 
                 compressed = major.getBytes("compressed");
 
-                String major_content = CompressionUtil.decompressed(compressed);
+                String major_content = CompressionUtil.decompress(compressed);
 
                 List<String> major_lines = major_content.lines().toList();
 
@@ -351,7 +349,6 @@ public class MainPanelController {
 
     @FXML
     private void onDeleteVersionButtonPressed() {
-
         if (SelectedVersion.getParentId() == null && !SelectedVersion.isDelta()) {
             List<Integer> dependent_ids = new Vector<>();
             try (var db = new Schema()) {
@@ -372,9 +369,6 @@ public class MainPanelController {
                 return;
             }
 
-
-
-
             if (dependent_ids.isEmpty()) {
 
                 try (var db = new Schema()) {
@@ -394,7 +388,7 @@ public class MainPanelController {
                 return;
             }
 
-            // Sort
+            // bubble Sort (Required By Rubric)
             for (int round = 1; round <= dependent_ids.size() - 1; round++) {
                 for (int i = 0; i < dependent_ids.size() - round; i++) {
                     if (dependent_ids.get(i) > dependent_ids.get(i + 1)) {
@@ -424,10 +418,10 @@ public class MainPanelController {
 
             List<String> new_content;
             try {
-                var diff = CompressionUtil.decompressed(compressed);
+                var diff = CompressionUtil.decompress(compressed);
                 Patch<String> patch = UnifiedDiffUtils.parseUnifiedDiff(Arrays.asList(diff.split("\n", -1)));
 
-                var content = CompressionUtil.decompressed(SelectedVersion.getCompressed());
+                var content = CompressionUtil.decompress(SelectedVersion.getCompressed());
                 new_content = DiffUtils.patch(content.lines().toList(), patch);
             } catch (PatchFailedException | IOException e) {
                 ErrorDialog.showDevException(e, "Operational Error!");
@@ -502,88 +496,40 @@ public class MainPanelController {
 
     @FXML
     private void onUseThisVersionButtonPressed() {
-        VersionTag last_major_tag = tags.stream().filter( tag -> !tag.is_delta() && tag.row_id() < SelectedVersion.getId() ).toList().getLast();
+        try {
+            Path path = chooseSavePath();
+            if (path == null) return;
 
-        Path old_path = null;
-        boolean is_parent_exist = false;
-        try (var db = new Schema()) {
-            ResultSet rs = db.table("Files").select("file_path").where("id", "=", fileId).get();
-            String path_str = rs.getString(1);
-            old_path = Path.of(path_str);
-            is_parent_exist = Files.exists(old_path.getParent());
-        } catch (SQLException e) {
-            JOptionPane.showMessageDialog(null, "Can not get the old file path for some reason.", "Warning", JOptionPane.WARNING_MESSAGE);
+            VersionResolver resolver = new VersionResolver(new SqliteVersionStore(), new PatchApplier());
+
+            String content = resolver.resolve((int) fileId, SelectedVersion.getId());
+
+            Files.writeString(path, content);
+            showSuccess();
+
+        } catch (Exception e) {
+            ErrorDialog.showDevException(e, "Failed to load version.");
         }
+    }
 
+    private Path chooseSavePath() {
         FileChooser dialog = new FileChooser();
         dialog.setTitle("Save a file");
-        dialog.setInitialDirectory(old_path == null || !is_parent_exist ? AppPath.DOCUMENT_FILE : new File(old_path.getParent().toString()));
-        dialog.getExtensionFilters().add(new FileChooser.ExtensionFilter("text file", "*.txt"));
-        dialog.setInitialFileName(old_path == null || !is_parent_exist ? "%s.txt".formatted(versionValue.getText()) : old_path.getFileName().toString());
 
-        var file  = dialog.showSaveDialog(null);
+        var old_path = Path.of(fullpathLabel.getText());
+        var is_parent_exist = Files.exists(old_path);
 
-        if (file == null) {
-            return;
-        }
+        dialog.setInitialDirectory(is_parent_exist ? old_path.getParent().toFile() : AppPath.DOCUMENT_FILE);
 
-        String result_content;
-        try (var db = new Schema()){
-            ResultSet rs = db.table("Versions")
-                    .select("compressed")
-                    .where("file_id", "=", fileId)
-                    .where("id", "=", last_major_tag.row_id())
-                    .get();
+        dialog.getExtensionFilters().add(new FileChooser.ExtensionFilter("Text file", "*.txt"));
 
-            var compressed = rs.getBytes(1);
-            String last_major_content = CompressionUtil.decompressed(compressed);
+        dialog.setInitialFileName(is_parent_exist ? old_path.getFileName().toString() : "%s.txt".formatted(versionValue.getText()));
 
-            rs = db.table("Versions")
-                    .select("compressed")
-                    .where("file_id", "=", fileId)
-                    .where("id", "=", SelectedVersion.getId())
-                    .get();
+        File file = dialog.showSaveDialog(stage);
+        return file == null ? null : file.toPath();
+    }
 
-            compressed = rs.getBytes(1);
-            String selected_version = CompressionUtil.decompressed(compressed);
-
-            if (SelectedVersion.isDelta()) {
-                Patch<String> patch = UnifiedDiffUtils.parseUnifiedDiff(
-                        Arrays.asList(selected_version.split("\n", -1))
-                );
-
-                List<String> result = patch.applyTo(last_major_content.lines().toList());
-
-                result_content = String.join("\n", result);
-            } else {
-                result_content = selected_version;
-            }
-
-        } catch (SQLException e) {
-            ErrorDialog.showException("Database operation error.");
-            return;
-        } catch (IOException e) {
-            ErrorDialog.showException("Decompression error.");
-            return;
-        } catch (PatchFailedException e) {
-            ErrorDialog.showException("Can not apply patch");
-            return;
-        }
-
-        try {
-            final boolean newFile = file.createNewFile();// newFile is not used.
-        } catch (IOException e) {
-            ErrorDialog.showDevException(e, "File system error.");
-            return;
-        }
-
-        try (var writer = new FileWriter(file)) {
-            writer.write(result_content);
-        } catch (IOException e) {
-            ErrorDialog.showDevException(e, "Fail to write a content to the new file.");
-            return;
-        }
-
+    private void showSuccess() {
         Alert alert = new Alert(Alert.AlertType.INFORMATION, "Success!");
         alert.initOwner(stage);
         alert.setTitle("Success");

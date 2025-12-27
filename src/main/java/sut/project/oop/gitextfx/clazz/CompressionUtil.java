@@ -20,7 +20,7 @@ public final class CompressionUtil {
         return outputStream.toByteArray();
     }
 
-    public static String decompressed(byte[] compressed) throws IOException {
+    public static String decompress(byte[] compressed) throws IOException {
         var inputStream = new ByteArrayInputStream(compressed);
         var outputStream = new ByteArrayOutputStream();
 

@@ -8,6 +8,14 @@ import java.util.*;
 import java.util.function.Consumer;
 
 public class QueryBuilder {
+
+    public enum SortOrder {
+        /// A - Z
+        ASC,
+        /// Z - A
+        DESC
+    }
+
     private final Connection connection;
 
     private String table;
@@ -15,6 +23,8 @@ public class QueryBuilder {
 
     private final List<String> joins = new ArrayList<>();
     private final List<Condition> conditions = new ArrayList<>();
+
+    private String orderBy = "";
 
     public QueryBuilder(Connection connection) {
         this.connection = connection;
@@ -79,6 +89,8 @@ public class QueryBuilder {
             }
         }
 
+        sql.append(orderBy);
+
         PreparedStatement stmt = connection.prepareStatement(sql.toString());
 
         int i = 1;
@@ -121,5 +133,14 @@ public class QueryBuilder {
         }
 
         return row;
+    }
+
+    public QueryBuilder orderBy(String column) {
+        return orderBy(column, SortOrder.ASC);
+    }
+
+    public QueryBuilder orderBy(String column, SortOrder order) {
+        this.orderBy = "ORDER BY %s %s".formatted(column, order);
+        return this;
     }
 }
