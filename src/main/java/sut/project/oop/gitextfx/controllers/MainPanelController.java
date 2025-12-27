@@ -49,7 +49,10 @@ public class MainPanelController {
 
     private long fileId;
 
+    private VersionService versionService;
+
     public void onReady(Path filepath, long file_id, Stage stage){
+        this.versionService = new VersionService(new SqliteVersionStore());
         this.stage = stage;
         this.fileId = file_id;
         fullpathLabel.setText(filepath.toString());
@@ -76,7 +79,6 @@ public class MainPanelController {
     }
 
     private void renderList() {
-
         if (tags.size() == 1) {
             deleteVersionBtn.setDisable(true);
         } else if (tags.isEmpty()) {
@@ -179,173 +181,257 @@ public class MainPanelController {
     }
 
 
+//    @FXML
+//    private void onNewVersionButtonPressed() {
+//        FileChooser dialog = new FileChooser();
+//        dialog.getExtensionFilters().add(new FileChooser.ExtensionFilter("Text file", "*.txt"));
+//
+//        try {
+//            Path path = Path.of(fullpathLabel.getText());
+//            Path parent = path.getParent();
+//
+//            if (parent != null && Files.isDirectory(parent)) dialog.setInitialDirectory(parent.toFile());
+//            else dialog.setInitialDirectory(AppPath.DOCUMENT_FILE);
+//
+//        } catch (InvalidPathException _) {
+//            dialog.setInitialDirectory(AppPath.DOCUMENT_FILE);
+//        }
+//
+//        File result = dialog.showOpenDialog(null);
+//
+//        if (result == null) return;
+//
+//        List<String> content;
+//
+//        try (FileReader reader = new FileReader(result)) {
+//            content = reader.readAllLines();
+//        } catch (FileNotFoundException e) {
+//            ErrorDialog.showException("File not found.");
+//            return;
+//        } catch (IOException e) {
+//            ErrorDialog.showException("File operation error.");
+//            return;
+//        }
+//
+//        if (content == null) {
+//            return;
+//        }
+//
+//        String new_tag;
+//        while (true) {
+//            TextInputDialog tag_name_dialog = new TextInputDialog();
+//            tag_name_dialog.initOwner(stage);
+//            tag_name_dialog.setTitle("New Version Tag");
+//            tag_name_dialog.setHeaderText(null);
+//            tag_name_dialog.setContentText("Enter a tag (max 24 characters):");
+//
+//            Optional<String> input = tag_name_dialog.showAndWait();
+//
+//            // User pressed Cancel or closed dialog
+//            if (input.isEmpty()) {
+//                new_tag = null;
+//                break;
+//            }
+//
+//            if (input.get().isBlank()) {
+//                ErrorDialog.showException("Tag cannot be empty.","Invalid Tag");
+//                continue;
+//            }
+//
+//            if (input.get().length() > 24) {
+//                ErrorDialog.showException("Tag must not exceed 24 characters.", "Invalid Tag");
+//                continue;
+//            }
+//
+//            new_tag = input.get();
+//            break;
+//        }
+//
+//        if (new_tag == null) return;
+//
+//        VersionTag last_major_tag = tags.stream().filter(tag -> !tag.is_delta() ).toList().getLast();
+//
+//        long inserted_id;
+//        byte[] compressed;
+//
+//        boolean is_delta;
+//        try(var db = new Schema()) {
+//            var distance = tags.stream()
+//                    .filter(tag -> tag.row_id() > last_major_tag.row_id())
+//                    .count();
+//
+//            var interval = db.table("Files")
+//                    .select("non_delta_interval")
+//                    .where("id", "=", fileId)
+//                    .get().getInt(1);
+//            is_delta = distance < interval - 1; // false if this new version is a Major version
+//        } catch (SQLException e) {
+//            ErrorDialog.showDevException(e, "Can not query.");
+//            return;
+//        }
+//
+//        try(var db = new Schema()){
+//            if (is_delta) {
+//                ResultSet major = db.query()
+//                        .select("compressed")
+//                        .from("Versions")
+//                        .where("id", "=", last_major_tag.row_id())
+//                        .get();
+//
+//                compressed = major.getBytes("compressed");
+//
+//                String major_content = CompressionUtil.decompress(compressed);
+//
+//                List<String> major_lines = major_content.lines().toList();
+//
+//                Patch<String> patch = DiffUtils.diff(major_lines, content);
+//
+//                List<String> unified_diff = UnifiedDiffUtils.generateUnifiedDiff(
+//                        "old",
+//                        "new",
+//                        major_lines,
+//                        patch,
+//                        3
+//                );
+//
+//                major.close();
+//
+//                String unified_diff_str = String.join("\n", unified_diff);
+//                compressed = CompressionUtil.compress(unified_diff_str);
+//            } else {
+//                compressed = CompressionUtil.compress(String.join("\n", content));
+//            }
+//
+//        } catch (SQLException e) {
+//            ErrorDialog.showDevException(e, "Database Operation Error.");
+//            return;
+//        } catch (IOException e) {
+//            ErrorDialog.showException("File error.");
+//            return;
+//        }
+//
+//        try (var db = new Schema()) {
+//            inserted_id = db.insertAndReturnID("""
+//                    INSERT INTO Versions (file_id, is_delta, compressed, parent_id, tag)
+//                    VALUES (?, ?, ?, ?, ?)
+//                    """,
+//                    fileId , is_delta, compressed, is_delta ? last_major_tag.row_id() : null, new_tag
+//            );
+//        } catch (SQLException e) {
+//            ErrorDialog.showDevException(e, "Can not execute database operations.");
+//            return;
+//        }
+//
+//        try (var db = new Schema()) {
+//            ResultSet inserted = db.table("Versions")
+//                    .select("tag", "is_delta")
+//                    .where("id", "=", inserted_id)
+//                    .where("file_id", "=", fileId)
+//                    .get();
+//
+//            tags.add(new VersionTag(
+//                    (int) inserted_id,
+//                    inserted.getString("tag"),
+//                    inserted.getBoolean("is_delta")
+//            ));
+//        } catch (SQLException e) {
+//            ErrorDialog.showDevException(e, "Can not execute database operation.");
+//        }
+//
+//
+//        if (inserted_id == -1) {
+//            return;
+//        }
+//
+//        renderList();
+//
+//        renderVersion(inserted_id);
+//
+//    }
+
     @FXML
     private void onNewVersionButtonPressed() {
-        FileChooser dialog = new FileChooser();
-        dialog.getExtensionFilters().add(new FileChooser.ExtensionFilter("Text file", "*.txt"));
+        var file = chooseSourceFile();
+        if (file == null) return;
+
+        var content = readFileContent(file);
+        if (content == null) return;
+
+        var new_tag = openTagDialog();
+        if (new_tag == null) return;
 
         try {
-            Path path = Path.of(fullpathLabel.getText());
-            Path parent = path.getParent();
+            var version_id = versionService.createNewVersion(
+                    (int) fileId,
+                    tags,
+                    content,
+                    new_tag
+            );
 
-            if (parent != null && Files.isDirectory(parent)) dialog.setInitialDirectory(parent.toFile());
-            else dialog.setInitialDirectory(AppPath.DOCUMENT_FILE);
+            renderList();
+            renderVersion(version_id);
 
-        } catch (InvalidPathException _) {
-            dialog.setInitialDirectory(AppPath.DOCUMENT_FILE);
+        } catch (Exception e) {
+            ErrorDialog.showDevException(e, "Failed to create version.");
         }
+    }
 
-        File result = dialog.showOpenDialog(null);
+    private File chooseSourceFile() {
+        var dialog = new FileChooser();
+        dialog.getExtensionFilters().add(
+                new FileChooser.ExtensionFilter("Text file", "*.txt")
+        );
 
-        if (result == null) return;
+        try {
+            var path = Path.of(fullpathLabel.getText());
+            var parent = path.getParent();
 
-        List<String> content;
+            dialog.setInitialDirectory(
+                    parent != null && Files.isDirectory(parent)
+                            ? parent.toFile()
+                            : AppPath.DOCUMENT_FILE
+            );
+        } catch (InvalidPathException _) { dialog.setInitialDirectory(AppPath.DOCUMENT_FILE); }
 
-        try (FileReader reader = new FileReader(result)) {
-            content = reader.readAllLines();
-        } catch (FileNotFoundException e) {
-            ErrorDialog.showException("File not found.");
-            return;
+        return dialog.showOpenDialog(null);
+    }
+
+    private List<String> readFileContent(File file) {
+        try (var reader = new FileReader(file)) {
+            return reader.readAllLines();
         } catch (IOException e) {
             ErrorDialog.showException("File operation error.");
-            return;
+            return null;
         }
+    }
 
-        if (content == null) {
-            return;
-        }
-
-        String new_tag;
+    private String openTagDialog() {
         while (true) {
-            TextInputDialog tag_name_dialog = new TextInputDialog();
-            tag_name_dialog.initOwner(stage);
-            tag_name_dialog.setTitle("New Version Tag");
-            tag_name_dialog.setHeaderText(null);
-            tag_name_dialog.setContentText("Enter a tag (max 24 characters):");
+            var dialog = new TextInputDialog();
+            dialog.initOwner(stage);
+            dialog.setTitle("New Version Tag");
+            dialog.setHeaderText(null);
+            dialog.setContentText("Enter a tag (max 24 characters):");
 
-            Optional<String> input = tag_name_dialog.showAndWait();
+            var input = dialog.showAndWait();
+            if (input.isEmpty()) return null;
 
-            // User pressed Cancel or closed dialog
-            if (input.isEmpty()) {
-                new_tag = null;
-                break;
-            }
+            var tag = input.get();
 
-            if (input.get().isBlank()) {
-                ErrorDialog.showException("Tag cannot be empty.","Invalid Tag");
+            if (tag.isBlank()) {
+                ErrorDialog.showException("Tag cannot be empty.", "Invalid Tag");
                 continue;
             }
 
-            if (input.get().length() > 24) {
+            if (tag.length() > 24) {
                 ErrorDialog.showException("Tag must not exceed 24 characters.", "Invalid Tag");
                 continue;
             }
 
-            new_tag = input.get();
-            break;
+            return tag;
         }
-
-        if (new_tag == null) return;
-
-        VersionTag last_major_tag = tags.stream().filter(tag -> !tag.is_delta() ).toList().getLast();
-
-        long inserted_id;
-        byte[] compressed;
-
-        boolean is_delta;
-        try(var db = new Schema()) {
-            var distance = tags.stream()
-                    .filter(tag -> tag.row_id() > last_major_tag.row_id())
-                    .count();
-
-            var interval = db.table("Files")
-                    .select("non_delta_interval")
-                    .where("id", "=", fileId)
-                    .get().getInt(1);
-            is_delta = distance < interval - 1; // false if this new version is a Major version
-        } catch (SQLException e) {
-            ErrorDialog.showDevException(e, "Can not query.");
-            return;
-        }
-
-        try(var db = new Schema()){
-            if (is_delta) {
-                ResultSet major = db.query()
-                        .select("compressed")
-                        .from("Versions")
-                        .where("id", "=", last_major_tag.row_id())
-                        .get();
-
-                compressed = major.getBytes("compressed");
-
-                String major_content = CompressionUtil.decompress(compressed);
-
-                List<String> major_lines = major_content.lines().toList();
-
-                Patch<String> patch = DiffUtils.diff(major_lines, content);
-
-                List<String> unified_diff = UnifiedDiffUtils.generateUnifiedDiff(
-                        "old",
-                        "new",
-                        major_lines,
-                        patch,
-                        3
-                );
-
-                major.close();
-
-                String unified_diff_str = String.join("\n", unified_diff);
-                compressed = CompressionUtil.compress(unified_diff_str);
-            } else {
-                compressed = CompressionUtil.compress(String.join("\n", content));
-            }
-
-        } catch (SQLException e) {
-            ErrorDialog.showDevException(e, "Database Operation Error.");
-            return;
-        } catch (IOException e) {
-            ErrorDialog.showException("File error.");
-            return;
-        }
-
-        try (var db = new Schema()) {
-            inserted_id = db.insertAndReturnID("""
-                    INSERT INTO Versions (file_id, is_delta, compressed, parent_id, tag)
-                    VALUES (?, ?, ?, ?, ?)
-                    """,
-                    fileId , is_delta, compressed, is_delta ? last_major_tag.row_id() : null, new_tag
-            );
-        } catch (SQLException e) {
-            ErrorDialog.showDevException(e, "Can not execute database operations.");
-            return;
-        }
-
-        try (var db = new Schema()) {
-            ResultSet inserted = db.table("Versions")
-                    .select("tag", "is_delta")
-                    .where("id", "=", inserted_id)
-                    .where("file_id", "=", fileId)
-                    .get();
-
-            tags.add(new VersionTag(
-                    (int) inserted_id,
-                    inserted.getString("tag"),
-                    inserted.getBoolean("is_delta")
-            ));
-        } catch (SQLException e) {
-            ErrorDialog.showDevException(e, "Can not execute database operation.");
-        }
-
-
-        if (inserted_id == -1) {
-            return;
-        }
-
-        renderList();
-
-        renderVersion(inserted_id);
-
     }
+
 
     @FXML
     private void onDeleteVersionButtonPressed() {

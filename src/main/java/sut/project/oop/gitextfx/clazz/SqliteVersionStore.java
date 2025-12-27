@@ -4,6 +4,7 @@ import sut.project.oop.gitextfx.interfaces.IVersionStore;
 import sut.project.oop.gitextfx.models.VersionTag;
 
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -37,6 +38,35 @@ public class SqliteVersionStore implements IVersionStore {
             }
 
             return list;
+        }
+    }
+
+    @Override
+    public int insertVersion(
+            int file_id,
+            boolean is_delta,
+            byte[] compressed,
+            Integer parent_id,
+            String tag
+    ) throws SQLException {
+
+        try (var db = new Schema()) {
+            return Math.toIntExact(db.insertAndReturnID("""
+                        INSERT INTO Versions (file_id, is_delta, compressed, parent_id, tag)
+                        VALUES (?, ?, ?, ?, ?)
+                    """, file_id, is_delta, compressed, parent_id, tag));
+        }
+
+    }
+
+    @Override
+    public int getNonDeltaInterval(int file_id) throws SQLException {
+        try (var db = new Schema()) {
+            return db.table("Files")
+                    .select("non_delta_interval")
+                    .where("id", "=", file_id)
+                    .get()
+                    .getInt(1);
         }
     }
 }
