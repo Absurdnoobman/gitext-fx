@@ -14,7 +14,7 @@ public class VersionResolver {
     }
 
     public String resolve(int fileId, int versionId) throws Exception {
-        VersionHistory history = new VersionHistory(store.getVersionsOf(fileId));
+        VersionHistory history = new VersionHistory(store.getVersionTagsOf(fileId));
 
         VersionTag target = history.findById(versionId);
 

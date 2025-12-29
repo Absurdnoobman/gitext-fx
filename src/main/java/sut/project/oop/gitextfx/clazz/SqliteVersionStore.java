@@ -1,8 +1,10 @@
 package sut.project.oop.gitextfx.clazz;
 
 import sut.project.oop.gitextfx.interfaces.IVersionStore;
+import sut.project.oop.gitextfx.models.Version;
 import sut.project.oop.gitextfx.models.VersionTag;
 
+import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -10,7 +12,7 @@ import java.util.List;
 
 public class SqliteVersionStore implements IVersionStore {
     @Override
-    public String load(int fileId, int versionId) throws Exception {
+    public String load(int fileId, int versionId) throws SQLException, IOException {
         try (var db = new Schema()) {
             ResultSet rs = db.table("Versions")
                     .select("compressed")
@@ -23,7 +25,7 @@ public class SqliteVersionStore implements IVersionStore {
     }
 
     @Override
-    public List<VersionTag> getVersionsOf(int fileId) throws Exception {
+    public List<VersionTag> getVersionTagsOf(int fileId) throws SQLException {
         try (var db = new Schema()) {
             ResultSet rs = db.table("Versions")
                     .select("id", "is_delta", "tag")
@@ -67,6 +69,64 @@ public class SqliteVersionStore implements IVersionStore {
                     .where("id", "=", file_id)
                     .get()
                     .getInt(1);
+        }
+    }
+
+    @Override
+    public void deleteVersion(int id) throws SQLException {
+        try (var db = new Schema()) {
+            db.execute("DELETE FROM Versions WHERE id = ?", id);
+        }
+    }
+
+    @Override
+    public Version getVersion(int id) throws SQLException {
+        try (var db = new Schema()) {
+            ResultSet rs = db.table("Versions")
+                    .select("*")
+                    .where("id", "=", id)
+                    .get();
+
+            return Version.from(rs, Version::new);
+        }
+    }
+
+    @Override
+    public List<Integer> getChildrenOf(int parent_id, int file_id) throws SQLException {
+        try (var db = new Schema()) {
+            List<Integer> ids = new ArrayList<>();
+
+            ResultSet rs = db.query()
+                    .select("id")
+                    .from("Versions")
+                    .where("file_id", "=", file_id)
+                    .where("parent_id", "=", parent_id)
+                    .get();
+
+            while (rs.next()) {
+                ids.add(rs.getInt(1));
+            }
+            rs.close();
+
+            return ids;
+        }
+    }
+
+    @Override
+    public void updateParent(int id, Integer newMajorId) throws SQLException {
+        try (var db = new Schema()) {
+            db.execute("UPDATE Versions SET parent_id = ? WHERE id = ?", newMajorId, id);
+        }
+    }
+
+    @Override
+    public void setDeltaToMajor(int id, byte[] new_content) throws SQLException {
+        try (var db = new Schema()) {
+            db.execute(
+                    "UPDATE Versions SET parent_id = null, compressed = ?, is_delta = false WHERE id = ?",
+                    new_content,
+                    id
+            );
         }
     }
 }

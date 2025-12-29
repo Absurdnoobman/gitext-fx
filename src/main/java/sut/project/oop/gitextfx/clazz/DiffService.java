@@ -8,7 +8,7 @@ import sut.project.oop.gitextfx.models.VersionTag;
 import java.util.List;
 
 public class DiffService {
-    public byte[] create_delta(
+    public byte[] createDelta(
             IVersionStore store,
             int file_id,
             VersionTag base,
