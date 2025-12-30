@@ -12,10 +12,10 @@
     <top>
         <MenuBar>
             <Menu text="File">
-                <MenuItem text="Add File"/>
+                <MenuItem text="Add File" onAction="#onAddFilePressed"/>
             </Menu>
             <Menu text="setting" >
-                <MenuItem text="Open setting" />
+                <MenuItem text="Open setting" onAction="#onSettingPressed"/>
             </Menu>
         </MenuBar>
     </top>
