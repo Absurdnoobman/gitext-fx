@@ -85,9 +85,9 @@ public class WelcomeController {
 
             var is_success = db.execute("""
                     INSERT INTO Versions (file_id, parent_id, tag, is_delta, compressed, created_at)
-                    VALUES ( ?, NULL, 'First version', FALSE, ?, ? )
+                    VALUES ( ?, NULL, 'First version', FALSE, ?, datetime('now') )
                     """,
-                    id, compressed, Date.valueOf(LocalDate.now())
+                    id, compressed
             );
 
             if (!is_success) ErrorDialog.showException("Can not insert a version.");
