@@ -86,7 +86,7 @@ public class Version extends Model {
 
         String createdAt = rs.getString("created_at");
         if (createdAt != null) {
-            this.createdAt = LocalDateTime.parse(createdAt, AppDateFormat.SQLITE_DT);
+            this.createdAt = LocalDateTime.parse(createdAt);
         }
     }
 

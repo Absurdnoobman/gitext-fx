@@ -4,12 +4,22 @@ import sut.project.oop.gitextfx.models.Version;
 import sut.project.oop.gitextfx.models.VersionTag;
 
 import java.sql.SQLException;
+import java.time.LocalDateTime;
 import java.util.List;
 
 public interface IVersionStore {
     String load(int fileId, int versionId) throws Exception;
 
     List<VersionTag> getVersionTagsOf(int fileId) throws SQLException;
+
+    int insertVersion(
+            int file_id,
+            boolean is_delta,
+            byte[] compressed,
+            Integer parent_id,
+            String tag,
+            LocalDateTime dateTime
+    ) throws SQLException;
 
     int insertVersion(
             int file_id,

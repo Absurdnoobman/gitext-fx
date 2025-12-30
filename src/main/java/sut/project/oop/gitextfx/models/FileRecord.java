@@ -1,23 +1,15 @@
 package sut.project.oop.gitextfx.models;
 
-import sut.project.oop.gitextfx.AppDateFormat;
-
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
 
-public class File extends Model {
+public class FileRecord extends Model {
     private long id;
     private String filePath;
     private LocalDateTime lastedEdit;
 
     private int nonDeltaInterval;
-
-    public File(long id, String filePath, LocalDateTime lastedEdit) {
-        this.id = id;
-        this.filePath = filePath;
-        this.lastedEdit = lastedEdit;
-    }
 
     public long getId() {
         return id;
@@ -51,7 +43,7 @@ public class File extends Model {
         String lasted_edit = rs.getString("lasted_edit");
 
         if (lasted_edit != null) {
-            this.lastedEdit = LocalDateTime.parse(lasted_edit, AppDateFormat.SQLITE_DT);
+            this.lastedEdit = LocalDateTime.parse(lasted_edit);
         }
     }
 }

@@ -8,11 +8,15 @@ import sut.project.oop.gitextfx.clazz.CompressionUtil;
 import sut.project.oop.gitextfx.clazz.ErrorDialog;
 import sut.project.oop.gitextfx.clazz.Schema;
 import sut.project.oop.gitextfx.controllers.WelcomeController;
+import sut.project.oop.gitextfx.models.FileRecord;
 
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Properties;
 
 public class GitextApp extends Application {
@@ -34,7 +38,7 @@ public class GitextApp extends Application {
                         tag VARCHAR(12) NOT NULL,
                         is_delta BOOLEAN NOT NULL,
                         compressed BLOB NOT NULL,
-                        created_at DATETIME NOT NULL DEFAULT (datetime('now'))
+                        created_at DATETIME NOT NULL
                     );
                     """);
 
@@ -100,14 +104,14 @@ public class GitextApp extends Application {
                         tag VARCHAR(12) NOT NULL,
                         is_delta BOOLEAN NOT NULL,
                         compressed BLOB NOT NULL,
-                        created_at DATETIME NOT NULL DEFAULT (datetime('now'))
+                        created_at DATETIME NOT NULL
                     );
                     """);
 
             db.execute("""
                     INSERT INTO Files (file_path, lasted_edit, non_delta_interval)
-                    VALUES ('C:\\Users\\walter\\Documents\\game_parliament_session.txt', datetime('now'), 5);
-                    """);
+                    VALUES ('C:\\Users\\walter\\Documents\\game_parliament_session.txt', ?, 5);
+                    """, LocalDateTime.now());
 
             FileReader reader = new FileReader("C:\\Users\\walter\\Documents\\game_parliament_session.txt");
             String raw = reader.readAllAsString();
@@ -117,9 +121,9 @@ public class GitextApp extends Application {
 
             var is_success = db.execute("""
                     INSERT INTO Versions (file_id, parent_id, tag, is_delta, compressed, created_at)
-                    VALUES ( 1, NULL, ?, FALSE, ?, datetime('now') )
+                    VALUES ( 1, NULL, ?, FALSE, ?, ?)
                     """,
-                    "First version", compressed
+                    "First version", compressed, LocalDateTime.now().toString()
             );
 
             if (!is_success) ErrorDialog.showException("Can not insert.");
@@ -155,8 +159,9 @@ public class GitextApp extends Application {
 
         try (var db = new Schema()){
 
-            var result = db.table("Files").select("*").getAsList();
-            ((WelcomeController) fxmlLoader.getController()).onReady(result);
+            ResultSet result = db.table("Files").select("*").get();
+            List<FileRecord> files = FileRecord.allFrom(result, FileRecord::new);
+            ((WelcomeController) fxmlLoader.getController()).onReady(files);
 
         } catch (SQLException e) {
             throw new RuntimeException(e);

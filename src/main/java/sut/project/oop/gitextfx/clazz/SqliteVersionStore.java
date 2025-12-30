@@ -7,6 +7,7 @@ import sut.project.oop.gitextfx.models.VersionTag;
 import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -51,14 +52,24 @@ public class SqliteVersionStore implements IVersionStore {
             Integer parent_id,
             String tag
     ) throws SQLException {
+        return insertVersion(file_id, is_delta, compressed, parent_id, tag, LocalDateTime.now());
+    }
 
+    @Override
+    public int insertVersion(
+            int file_id,
+            boolean is_delta,
+            byte[] compressed,
+            Integer parent_id,
+            String tag,
+            LocalDateTime dateTime
+    ) throws SQLException {
         try (var db = new Schema()) {
             return Math.toIntExact(db.insertAndReturnID("""
-                        INSERT INTO Versions (file_id, is_delta, compressed, parent_id, tag)
+                        INSERT INTO Versions (file_id, is_delta, compressed, parent_id, tag, created_at)
                         VALUES (?, ?, ?, ?, ?)
-                    """, file_id, is_delta, compressed, parent_id, tag));
+                    """, file_id, is_delta, compressed, parent_id, tag, dateTime));
         }
-
     }
 
     @Override

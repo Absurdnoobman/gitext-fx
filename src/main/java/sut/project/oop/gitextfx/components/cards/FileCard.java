@@ -14,13 +14,13 @@ import javafx.stage.Stage;
 import sut.project.oop.gitextfx.AppDateFormat;
 import sut.project.oop.gitextfx.GitextApp;
 import sut.project.oop.gitextfx.controllers.MainPanelController;
-import sut.project.oop.gitextfx.models.File;
+import sut.project.oop.gitextfx.models.FileRecord;
 
 import java.io.IOException;
 import java.nio.file.Path;
 
 public class FileCard extends HBox {
-    public FileCard(int index, File file, Stage old_stage){
+    public FileCard(int index, FileRecord file, Stage old_stage){
         this.setSpacing(2);
         this.setPadding(new Insets(4));
         this.setMaxWidth(Double.MAX_VALUE);

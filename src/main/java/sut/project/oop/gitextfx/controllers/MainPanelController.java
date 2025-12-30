@@ -28,6 +28,7 @@ import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.zip.GZIPOutputStream;
 
@@ -363,9 +364,9 @@ public class MainPanelController {
 
             var is_success = db.execute("""
                     INSERT INTO Versions (file_id, parent_id, tag, is_delta, compressed, created_at)
-                    VALUES ( ?, NULL, 'First version', FALSE, ?, datetime('now') )
+                    VALUES ( ?, NULL, 'First version', FALSE, ? )
                     """,
-                    id, compressed
+                    id, compressed, LocalDateTime.now()
             );
 
             if (!is_success) ErrorDialog.showException("Can not insert a version.");
