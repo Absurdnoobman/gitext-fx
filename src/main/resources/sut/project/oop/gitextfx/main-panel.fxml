@@ -9,7 +9,16 @@
             xmlns:fx="http://javafx.com/fxml"
             fx:controller="sut.project.oop.gitextfx.controllers.MainPanelController"
             prefHeight="600.0" prefWidth="1080.0">
-
+    <top>
+        <MenuBar>
+            <Menu text="File">
+                <MenuItem text="Add File" onAction="#onAddFilePressed"/>
+            </Menu>
+            <Menu text="setting" >
+                <MenuItem text="Open setting" onAction="#onSettingPressed"/>
+            </Menu>
+        </MenuBar>
+    </top>
     <left>
         <VBox spacing="8" maxWidth="220">
             <padding>

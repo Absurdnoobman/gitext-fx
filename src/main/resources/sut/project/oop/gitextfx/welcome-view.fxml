@@ -5,28 +5,42 @@
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.Text?>
+<?import javafx.scene.control.MenuBar?>
+<?import javafx.scene.control.Menu?>
+<?import javafx.scene.control.MenuItem?>
+
 <VBox prefHeight="400.0" prefWidth="600.0"
       xmlns="http://javafx.com/javafx/17.0.12"
       xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="sut.project.oop.gitextfx.controllers.WelcomeController">
 
-    <padding>
-        <Insets bottom="12" left="12" right="12" top="12" />
-    </padding>
+    <MenuBar>
+        <Menu text="File">
+            <MenuItem text="Add File" onAction="#onAddFileButtonPressed"/>
+        </Menu>
+        <Menu text="setting" >
+            <MenuItem text="Open setting" onAction="#onSettingPressed" />
+        </Menu>
+    </MenuBar>
 
-    <HBox spacing="12" HBox.hgrow="ALWAYS">
-        <Text style="-fx-font-family: 'Inter'; -fx-font-size: 26px;" text="Your Files" />
-        <Region HBox.hgrow="ALWAYS" />
-        <Button onAction="#onAddFileButtonPressed">Add file</Button>
-        <Button onAction="#onSettingPressed">Setting</Button>
+    <VBox>
         <padding>
-            <Insets bottom="12" />
+            <Insets bottom="12" left="12" right="12" top="12" />
         </padding>
-    </HBox>
 
-    <ScrollPane VBox.vgrow="ALWAYS">
-        <VBox fx:id="FileListVBox" spacing="4">
-        </VBox>
-    </ScrollPane>
-    
+        <HBox spacing="12" HBox.hgrow="ALWAYS">
+            <Text style="-fx-font-family: 'Inter'; -fx-font-size: 26px;" text="Your Files" />
+            <Region HBox.hgrow="ALWAYS" />
+            <Button onAction="#onAddFileButtonPressed">Add file</Button>
+            <Button onAction="#onSettingPressed">Setting</Button>
+            <padding>
+                <Insets bottom="12" />
+            </padding>
+        </HBox>
+
+        <ScrollPane VBox.vgrow="ALWAYS">
+            <VBox fx:id="FileListVBox" spacing="4">
+            </VBox>
+        </ScrollPane>
+    </VBox>
 </VBox>
