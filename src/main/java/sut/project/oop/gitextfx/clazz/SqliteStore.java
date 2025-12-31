@@ -1,6 +1,8 @@
 package sut.project.oop.gitextfx.clazz;
 
+import sut.project.oop.gitextfx.interfaces.IFileRecordStore;
 import sut.project.oop.gitextfx.interfaces.IVersionStore;
+import sut.project.oop.gitextfx.models.FileRecord;
 import sut.project.oop.gitextfx.models.Version;
 import sut.project.oop.gitextfx.models.VersionTag;
 
@@ -11,7 +13,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-public class SqliteVersionStore implements IVersionStore {
+public class SqliteStore implements IVersionStore, IFileRecordStore {
     @Override
     public String load(int fileId, int versionId) throws SQLException, IOException {
         try (var db = new Schema()) {
@@ -138,6 +140,47 @@ public class SqliteVersionStore implements IVersionStore {
                     new_content,
                     id
             );
+        }
+    }
+
+    @Override
+    public FileRecord get(int id) throws SQLException {
+        try (var db = new Schema()) {
+            ResultSet rs = db.table("Files")
+                    .where("id", "=", id)
+                    .get();
+
+            return FileRecord.from(rs, FileRecord::new);
+        }
+    }
+
+    @Override
+    public List<FileRecord> getAll() throws SQLException {
+        try (var db = new Schema()) {
+            ResultSet rs = db.query()
+                    .select("*")
+                    .from("Files")
+                    .get();
+
+            return FileRecord.allFrom(rs, FileRecord::new);
+        }
+    }
+
+    @Override
+    public void insert(String path, LocalDateTime lasted_edit) throws SQLException {
+        try (var db = new Schema()) {
+            db.execute("""
+                    INSERT INTO Files (file_path, lasted_edit) VALUES (?, ?)
+                    """, path, lasted_edit);
+        }
+    }
+
+    @Override
+    public void delete(int id) throws SQLException {
+        try (var db = new Schema()) {
+            db.execute("""
+                    DELETE FROM Files WHERE id = ?
+                    """, id);
         }
     }
 }

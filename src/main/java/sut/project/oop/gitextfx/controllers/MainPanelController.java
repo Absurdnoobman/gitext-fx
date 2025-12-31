@@ -4,7 +4,6 @@ import com.github.difflib.DiffUtils;
 import com.github.difflib.UnifiedDiffUtils;
 import com.github.difflib.patch.Patch;
 import com.github.difflib.patch.PatchFailedException;
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
@@ -20,7 +19,6 @@ import sut.project.oop.gitextfx.clazz.*;
 import sut.project.oop.gitextfx.models.Version;
 import sut.project.oop.gitextfx.models.VersionTag;
 
-import javax.swing.*;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -59,7 +57,7 @@ public class MainPanelController {
     private VersionService versionService;
 
     public void onReady(Path filepath, long file_id, Stage stage){
-        this.versionService = new VersionService(new SqliteVersionStore());
+        this.versionService = new VersionService(new SqliteStore());
         this.stage = stage;
         this.fileId = file_id;
         fullpathLabel.setText(filepath.toString());
@@ -295,7 +293,7 @@ public class MainPanelController {
             Path path = chooseSavePath();
             if (path == null) return;
 
-            VersionResolver resolver = new VersionResolver(new SqliteVersionStore(), new PatchApplier());
+            VersionResolver resolver = new VersionResolver(new SqliteStore(), new PatchApplier());
 
             String content = resolver.resolve((int) fileId, SelectedVersion.getId());
 

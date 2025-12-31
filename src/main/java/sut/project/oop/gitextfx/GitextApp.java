@@ -146,7 +146,7 @@ public class GitextApp extends Application {
             var is_new = prepareFiles();
             if (is_new) prepareDB();
         } catch (IOException e) {
-            ErrorDialog.showDevException(e , "Can not the nessecery prepare to create app folder and setting file.");
+            ErrorDialog.showDevException(e , "Can not the necessary prepare to create app folder and setting file.");
             return;
         }
 
