@@ -7,7 +7,9 @@ import javafx.stage.Stage;
 import sut.project.oop.gitextfx.clazz.CompressionUtil;
 import sut.project.oop.gitextfx.clazz.ErrorDialog;
 import sut.project.oop.gitextfx.clazz.Schema;
+import sut.project.oop.gitextfx.clazz.SqliteStore;
 import sut.project.oop.gitextfx.controllers.WelcomeController;
+import sut.project.oop.gitextfx.interfaces.IFileRecordStore;
 import sut.project.oop.gitextfx.models.FileRecord;
 
 import java.io.*;
@@ -20,6 +22,7 @@ import java.util.List;
 import java.util.Properties;
 
 public class GitextApp extends Application {
+    private final IFileRecordStore store = new SqliteStore();
     private void prepareDB(){
         try (var db = new Schema(AppPath.DB_PATH)) {
             db.execute("""
@@ -79,7 +82,7 @@ public class GitextApp extends Application {
     }
 
     /// Seed Database
-    private void seedDB() {
+    private void seedDB() throws SQLException, IOException {
         try (var db = new Schema()){
             db.execute("""
                     DROP TABLE Versions;
@@ -107,37 +110,23 @@ public class GitextApp extends Application {
                         created_at DATETIME NOT NULL
                     );
                     """);
-
-            db.execute("""
-                    INSERT INTO Files (file_path, lasted_edit, non_delta_interval)
-                    VALUES ('C:\\Users\\walter\\Documents\\game_parliament_session.txt', ?, 5);
-                    """, LocalDateTime.now());
-
-            FileReader reader = new FileReader("C:\\Users\\walter\\Documents\\game_parliament_session.txt");
-            String raw = reader.readAllAsString();
-            reader.close();
-
-            byte[] compressed = CompressionUtil.compress(raw);
-
-            var is_success = db.execute("""
-                    INSERT INTO Versions (file_id, parent_id, tag, is_delta, compressed, created_at)
-                    VALUES ( 1, NULL, ?, FALSE, ?, ?)
-                    """,
-                    "First version", compressed, LocalDateTime.now().toString()
-            );
-
-            if (!is_success) ErrorDialog.showException("Can not insert.");
         } catch (SQLException e) {
-            var is_dev_mode = Boolean.parseBoolean(System.getProperty("dev"));
-
-            if (is_dev_mode) {
-                ErrorDialog.showDevException(e, "cannot execute database operations");
-            } else {
-                ErrorDialog.showException("cannot execute database operations");
-            }
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+            ErrorDialog.showDevException(e, "Fatal Error: Can not seed DB.");
+            return;
         }
+
+        store.insertNewFileRecord("C:\\Users\\walter\\Documents\\game_parliament_session.txt", LocalDateTime.now(), 5);
+
+        FileReader reader = new FileReader("C:\\Users\\walter\\Documents\\game_parliament_session.txt");
+        String raw = reader.readAllAsString();
+        reader.close();
+
+        byte[] compressed = CompressionUtil.compress(raw);
+
+        var versionStore = new SqliteStore();
+
+        versionStore.insertVersion(1, false, compressed, null, "First Version", LocalDateTime.now());
+
     }
 
     @Override
@@ -145,24 +134,27 @@ public class GitextApp extends Application {
         try {
             var is_new = prepareFiles();
             if (is_new) prepareDB();
+
         } catch (IOException e) {
             ErrorDialog.showDevException(e , "Can not the necessary prepare to create app folder and setting file.");
             return;
         }
 
-        seedDB();
+        // In dev only.
+        try {
+            seedDB();
+        } catch (SQLException e) {
+            ErrorDialog.showDevException(e, "Can not seed.");
+        }
 
         var fxmlLoader = new FXMLLoader(GitextApp.class.getResource("welcome-view.fxml"));
         var scene = new Scene(fxmlLoader.load(), 600, 400);
 
         ((WelcomeController) fxmlLoader.getController()).stage = stage;
 
-        try (var db = new Schema()){
-
-            ResultSet result = db.table("Files").select("*").get();
-            List<FileRecord> files = FileRecord.allFrom(result, FileRecord::new);
+        try {
+            List<FileRecord>  files = store.getAllFileRecords();
             ((WelcomeController) fxmlLoader.getController()).onReady(files);
-
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }

@@ -7,12 +7,12 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public interface IFileRecordStore {
-    FileRecord get(int id) throws SQLException;
+    FileRecord getFileRecord(int id) throws SQLException;
 
-    List<FileRecord> getAll() throws SQLException;
+    List<FileRecord> getAllFileRecords() throws SQLException;
 
-    void insert(String path, LocalDateTime created_at) throws SQLException;
+    void insertNewFileRecord(String path, LocalDateTime created_at, int non_delta_interval) throws SQLException;
 
-    void delete(int id) throws SQLException;
+    void deleteFileRecord(int id) throws SQLException;
 
 }

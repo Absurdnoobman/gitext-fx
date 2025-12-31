@@ -69,8 +69,8 @@ public class SqliteStore implements IVersionStore, IFileRecordStore {
         try (var db = new Schema()) {
             return Math.toIntExact(db.insertAndReturnID("""
                         INSERT INTO Versions (file_id, is_delta, compressed, parent_id, tag, created_at)
-                        VALUES (?, ?, ?, ?, ?)
-                    """, file_id, is_delta, compressed, parent_id, tag, dateTime));
+                        VALUES (?, ?, ?, ?, ?, ?)
+                    """, file_id, is_delta, compressed, parent_id, tag, dateTime.toString()));
         }
     }
 
@@ -144,7 +144,7 @@ public class SqliteStore implements IVersionStore, IFileRecordStore {
     }
 
     @Override
-    public FileRecord get(int id) throws SQLException {
+    public FileRecord getFileRecord(int id) throws SQLException {
         try (var db = new Schema()) {
             ResultSet rs = db.table("Files")
                     .where("id", "=", id)
@@ -155,7 +155,7 @@ public class SqliteStore implements IVersionStore, IFileRecordStore {
     }
 
     @Override
-    public List<FileRecord> getAll() throws SQLException {
+    public List<FileRecord> getAllFileRecords() throws SQLException {
         try (var db = new Schema()) {
             ResultSet rs = db.query()
                     .select("*")
@@ -167,16 +167,16 @@ public class SqliteStore implements IVersionStore, IFileRecordStore {
     }
 
     @Override
-    public void insert(String path, LocalDateTime lasted_edit) throws SQLException {
+    public void insertNewFileRecord(String path, LocalDateTime lasted_edit, int non_delta_interval) throws SQLException {
         try (var db = new Schema()) {
             db.execute("""
-                    INSERT INTO Files (file_path, lasted_edit) VALUES (?, ?)
-                    """, path, lasted_edit);
+                    INSERT INTO Files (file_path, lasted_edit, non_delta_interval) VALUES (?, ?, ?)
+                    """, path, lasted_edit.toString(), non_delta_interval);
         }
     }
 
     @Override
-    public void delete(int id) throws SQLException {
+    public void deleteFileRecord(int id) throws SQLException {
         try (var db = new Schema()) {
             db.execute("""
                     DELETE FROM Files WHERE id = ?
