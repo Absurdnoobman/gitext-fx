@@ -167,9 +167,9 @@ public class SqliteStore implements IVersionStore, IFileRecordStore {
     }
 
     @Override
-    public void insertNewFileRecord(String path, LocalDateTime lasted_edit, int non_delta_interval) throws SQLException {
+    public long insertNewFileRecord(String path, LocalDateTime lasted_edit, int non_delta_interval) throws SQLException {
         try (var db = new Schema()) {
-            db.execute("""
+            return db.insertAndReturnID("""
                     INSERT INTO Files (file_path, lasted_edit, non_delta_interval) VALUES (?, ?, ?)
                     """, path, lasted_edit.toString(), non_delta_interval);
         }

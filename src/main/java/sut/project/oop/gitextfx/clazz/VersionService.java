@@ -4,7 +4,6 @@ import sut.project.oop.gitextfx.interfaces.IVersionStore;
 import sut.project.oop.gitextfx.models.Version;
 import sut.project.oop.gitextfx.models.VersionTag;
 
-import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
 import java.util.List;
 
@@ -33,7 +32,7 @@ public class VersionService {
         var is_delta = should_be_delta(file_id, tags, last_major);
 
         var compressed = is_delta
-                ? diff_service.createDelta(store, file_id, last_major, content)
+                ? diff_service.createDelta(store, file_id, last_major.row_id(), content)
                 : CompressionUtil.compress(String.join("\n", content));
 
         var parent_id = is_delta ? last_major.row_id() : null;
@@ -92,7 +91,7 @@ public class VersionService {
     }
 
     private String rebuild_major_content(int fileId, int old_major_id, int new_major_id) throws Exception {
-        var applier = new PatchApplier();
+        var applier = new PatchService();
         var delta = store.load(fileId, new_major_id);
         var base_content = store.load(fileId, old_major_id);
         return applier.apply(base_content, delta);

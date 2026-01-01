@@ -115,9 +115,9 @@ public class GitextApp extends Application {
             return;
         }
 
-        store.insertNewFileRecord("C:\\Users\\walter\\Documents\\game_parliament_session.txt", LocalDateTime.now(), 5);
+        store.insertNewFileRecord("C:\\Users\\walter\\Documents\\New folder\\text file.txt", LocalDateTime.now(), 5);
 
-        FileReader reader = new FileReader("C:\\Users\\walter\\Documents\\game_parliament_session.txt");
+        FileReader reader = new FileReader("C:\\Users\\walter\\Documents\\New folder\\text file.txt");
         String raw = reader.readAllAsString();
         reader.close();
 
@@ -156,7 +156,7 @@ public class GitextApp extends Application {
             List<FileRecord>  files = store.getAllFileRecords();
             ((WelcomeController) fxmlLoader.getController()).onReady(files);
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            ErrorDialog.showDevException(e, "Fatal Error: can not launch the app.");
         }
 
         stage.setTitle("demo");

@@ -11,7 +11,7 @@ public interface IFileRecordStore {
 
     List<FileRecord> getAllFileRecords() throws SQLException;
 
-    void insertNewFileRecord(String path, LocalDateTime created_at, int non_delta_interval) throws SQLException;
+    long insertNewFileRecord(String path, LocalDateTime created_at, int non_delta_interval) throws SQLException;
 
     void deleteFileRecord(int id) throws SQLException;
 

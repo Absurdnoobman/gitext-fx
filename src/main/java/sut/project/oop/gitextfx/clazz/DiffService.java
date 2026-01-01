@@ -11,11 +11,11 @@ public class DiffService {
     public byte[] createDelta(
             IVersionStore store,
             int file_id,
-            VersionTag base,
+            int base_id,
             List<String> new_content
     ) throws Exception {
 
-        var base_content = store.load(file_id, base.row_id());
+        var base_content = store.load(file_id, base_id);
         var base_lines = base_content.lines().toList();
 
         var patch = DiffUtils.diff(base_lines, new_content);

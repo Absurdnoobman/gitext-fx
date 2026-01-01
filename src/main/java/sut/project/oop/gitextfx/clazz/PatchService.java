@@ -6,12 +6,16 @@ import com.github.difflib.patch.PatchFailedException;
 
 import java.util.Arrays;
 
-public final class PatchApplier {
+public final class PatchService {
 
     public String apply(String base, String unifiedDiff) throws PatchFailedException {
 
-        Patch<String> patch = UnifiedDiffUtils.parseUnifiedDiff(Arrays.asList(unifiedDiff.split("\n", -1)));
+        Patch<String> patch = parseFromStr(unifiedDiff);
 
         return String.join("\n", patch.applyTo(base.lines().toList()));
+    }
+
+    public Patch<String> parseFromStr(String diff_str) {
+        return UnifiedDiffUtils.parseUnifiedDiff(Arrays.asList(diff_str.split("\n", -1)));
     }
 }

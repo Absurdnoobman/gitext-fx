@@ -7,9 +7,7 @@ import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import sut.project.oop.gitextfx.GitextApp;
-import sut.project.oop.gitextfx.clazz.CompressionUtil;
-import sut.project.oop.gitextfx.clazz.ErrorDialog;
-import sut.project.oop.gitextfx.clazz.Schema;
+import sut.project.oop.gitextfx.clazz.*;
 import sut.project.oop.gitextfx.components.cards.FileCard;
 import sut.project.oop.gitextfx.models.FileRecord;
 
@@ -22,6 +20,7 @@ import java.nio.file.Path;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.zip.GZIPOutputStream;
 
 public class WelcomeController {
@@ -54,11 +53,12 @@ public class WelcomeController {
         if (result == null) return;
 
         String full_path = result.getPath();
-        long id = -1;
-        try (var db = new Schema()) {
-            id = db.insertAndReturnID("""
-                    INSERT INTO Files (file_path, lasted_edit) VALUES (?, ?)
-                    """, full_path, LocalDateTime.now());
+        long id;
+        try {
+            var store = new SqliteStore();
+            Optional<Integer> rs = SettingManager.getDeltaInterval();
+
+            id = store.insertNewFileRecord(full_path, LocalDateTime.now(), rs.orElse(5));
 
             if (id == -1) {
                 ErrorDialog.showException("Can not insert a file.");
@@ -67,33 +67,27 @@ public class WelcomeController {
 
             FileReader reader = new FileReader(full_path);
             String raw = reader.readAllAsString();
+            reader.close();
 
             byte[] compressed = CompressionUtil.compress(raw);
 
-            var is_success = db.execute("""
-                    INSERT INTO Versions (file_id, parent_id, tag, is_delta, compressed, created_at)
-                    VALUES ( ?, NULL, 'First version', FALSE, ?, ? )
-                    """,
-                    id, compressed, LocalDateTime.now()
-            );
-
-            if (!is_success) ErrorDialog.showException("Can not insert a version.");
+            store.insertVersion((int) id, false, compressed, null, "First Version");
 
         } catch (SQLException | IOException e) {
-            var is_dev_mode = Boolean.parseBoolean(System.getProperty("dev"));
-
-            if (is_dev_mode) {
-                ErrorDialog.showDevException(e, "cannot execute database operations");
-            } else {
-                ErrorDialog.showException("cannot execute database operations");
-            }
+            ErrorDialog.showDevException(e, "Error!!");
+            return;
         }
 
+        openMainPanel(full_path, (int) id);
+
+    }
+
+    private void openMainPanel(String full_path, int file_id) {
         Stage new_stage = new Stage();
 
         FXMLLoader loader = new FXMLLoader(GitextApp.class.getResource("main-panel.fxml"));
 
-        Scene scene = null;
+        Scene scene;
         try {
             scene = new Scene(loader.load());
         } catch (IOException e) {
@@ -101,16 +95,15 @@ public class WelcomeController {
             return;
         }
 
-        if (id == -1) return;
+        if (file_id == -1) return;
 
         final Path path = Path.of(full_path);
-        ((MainPanelController) loader.getController()).onReady(path, id, new_stage);
+        ((MainPanelController) loader.getController()).onReady(path, file_id, new_stage);
         new_stage.setTitle("File: %s".formatted(path.getFileName()));
         new_stage.setScene(scene);
         new_stage.show();
 
         stage.close();
-
     }
 
     @FXML

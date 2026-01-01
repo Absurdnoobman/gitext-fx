@@ -13,6 +13,8 @@
         <MenuBar>
             <Menu text="File">
                 <MenuItem text="Add File" onAction="#onAddFilePressed"/>
+                <SeparatorMenuItem />
+                <MenuItem text="Open File List (first menu)" onAction="#onOpenFileListMenuPressed"/>
             </Menu>
             <Menu text="setting" >
                 <MenuItem text="Open setting" onAction="#onSettingPressed"/>

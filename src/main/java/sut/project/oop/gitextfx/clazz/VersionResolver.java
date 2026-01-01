@@ -6,9 +6,9 @@ import sut.project.oop.gitextfx.models.VersionTag;
 public class VersionResolver {
 
     private final IVersionStore store;
-    private final PatchApplier patcher;
+    private final PatchService patcher;
 
-    public VersionResolver(IVersionStore store, PatchApplier patcher) {
+    public VersionResolver(IVersionStore store, PatchService patcher) {
         this.store = store;
         this.patcher = patcher;
     }

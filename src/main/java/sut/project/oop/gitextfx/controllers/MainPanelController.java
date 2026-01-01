@@ -1,8 +1,6 @@
 package sut.project.oop.gitextfx.controllers;
 
-import com.github.difflib.DiffUtils;
 import com.github.difflib.UnifiedDiffUtils;
-import com.github.difflib.patch.Patch;
 import com.github.difflib.patch.PatchFailedException;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -16,6 +14,7 @@ import sut.project.oop.gitextfx.AppDateFormat;
 import sut.project.oop.gitextfx.AppPath;
 import sut.project.oop.gitextfx.GitextApp;
 import sut.project.oop.gitextfx.clazz.*;
+import sut.project.oop.gitextfx.models.FileRecord;
 import sut.project.oop.gitextfx.models.Version;
 import sut.project.oop.gitextfx.models.VersionTag;
 
@@ -24,7 +23,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -74,7 +72,11 @@ public class MainPanelController {
 
         renderList();
 
-        renderVersion(tags.getLast().row_id());
+        try {
+            renderVersion(tags.getLast().row_id());
+        } catch (Exception e) {
+            ErrorDialog.showDevException(e, "Can not render version %s".formatted(tags.getLast().tag()));
+        }
 
     }
 
@@ -92,74 +94,44 @@ public class MainPanelController {
 
         for (var v: tags) {
             var txt = new Text(v.tag());
-            txt.setOnMouseClicked(_ -> renderVersion(v.row_id()));
+            txt.setOnMouseClicked(_ -> {
+                try {
+                    renderVersion(v.row_id());
+                } catch (Exception e) {
+                    ErrorDialog.showDevException(e, "Can not render version %s".formatted(v.tag()));
+                }
+            });
             VersionsList.getChildren().add(txt);
         }
     }
 
-    private void renderVersion(long id) {
-        try (var db = new Schema()) {
-            ResultSet result = db.query()
-                    .from("Versions")
-                    .where("id", "=", id)
-                    .where("file_id", "=", fileId)
-                    .get();
+    private void renderVersion(int id) throws Exception {
+        try {
+            var this_version = new SqliteStore().getVersion(id);
 
-            Version this_version = Version.from(result, Version::new);
+            var history = new VersionHistory(tags);
 
             String text = CompressionUtil.decompress(this_version.getCompressed());
 
             if (!this_version.isDelta()) { // is non-delta version (major)
                 unifiedDiffArea.setText(text);
             } else {
-                var last_major_tag = tags.stream().filter(t -> !t.is_delta() && t.row_id() < id ).toList().getLast();
-                var interval = tags.stream().filter(t -> t.row_id() > last_major_tag.row_id() && t.row_id() < id).toList();
+                var last_major_tag = history.findBaseOf(id);
+                var interval = history.findDeltas(last_major_tag.row_id(), id);
 
                 if (interval.size() <= 1) { // next to non-delta version
                     unifiedDiffArea.setText(text);
                 } else {
-                    var previous_tag = interval.getLast();
+                    var previous_version = interval.getLast();
 
-                    ResultSet rs = db.table("Versions")
-                            .select("compressed")
-                            .where("file_id", "=", fileId)
-                            .where("id", "=", previous_tag.row_id())
-                            .get();
+                    VersionResolver resolver = new VersionResolver(new SqliteStore(), new PatchService());
 
-                    byte[] compressed = rs.getBytes(1);
+                    var previous_version_content = resolver.resolve((int) fileId, previous_version.row_id());
 
-                    String patch_decompressed = CompressionUtil.decompress(compressed);
-
-                    rs.close();
-
-                    rs = db.table("Versions")
-                            .select("compressed")
-                            .where("file_id", "=", fileId)
-                            .where("id", "=", last_major_tag.row_id())
-                            .get();
-
-                    compressed = rs.getBytes(1);
-
-                    String major_content = CompressionUtil.decompress(compressed);
-
-                    Patch<String> patch = UnifiedDiffUtils.parseUnifiedDiff(
-                            Arrays.asList(patch_decompressed.split("\n", -1))
-                    );
-
-                    List<String> major_lines = major_content.lines().toList();
-
-                    List<String> previous_content_lines = patch.applyTo(major_lines);
-
-                    var this_version_content = CompressionUtil.decompress(this_version.getCompressed());
-                    List<String> this_version_lines = this_version_content.lines().toList();
-
-                    patch = DiffUtils.diff(previous_content_lines, this_version_lines);
-
-                    List<String> unified_diff = UnifiedDiffUtils.generateUnifiedDiff(
-                            "old",
-                            "new",
-                            previous_content_lines,
-                            patch,
+                    var unified_diff = UnifiedDiffUtils.generateUnifiedDiff(
+                            "old", "new",
+                            previous_version_content.lines().toList(),
+                            new PatchService().parseFromStr(new SqliteStore().load((int) fileId, id)),
                             3
                     );
 
@@ -293,7 +265,7 @@ public class MainPanelController {
             Path path = chooseSavePath();
             if (path == null) return;
 
-            VersionResolver resolver = new VersionResolver(new SqliteStore(), new PatchApplier());
+            VersionResolver resolver = new VersionResolver(new SqliteStore(), new PatchService());
 
             String content = resolver.resolve((int) fileId, SelectedVersion.getId());
 
@@ -417,5 +389,29 @@ public class MainPanelController {
             ErrorDialog.showException("Can not open menu.");
         }
 
+    }
+
+    @FXML
+    private void onOpenFileListMenuPressed() {
+        try {
+            var store = new SqliteStore();
+            var files = store.getAllFileRecords();
+
+            Stage new_stage = new Stage();
+            FXMLLoader loader = new FXMLLoader(GitextApp.class.getResource("welcome-view.fxml"));
+            var scene = new Scene(loader.load(), 600, 400);
+
+            ((WelcomeController) loader.getController()).stage = new_stage;
+            ((WelcomeController) loader.getController()).onReady(files);
+
+            new_stage.setTitle("Welcome");
+            new_stage.setScene(scene);
+            new_stage.show();
+
+            stage.close();
+
+        } catch (SQLException | IOException e) {
+            ErrorDialog.showDevException(e, "Can not open a list.");
+        }
     }
 }
