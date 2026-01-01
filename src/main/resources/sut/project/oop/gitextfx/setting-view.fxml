@@ -6,9 +6,20 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<AnchorPane xmlns="http://javafx.com/javafx"
-            xmlns:fx="http://javafx.com/fxml"
-            fx:controller="sut.project.oop.gitextfx.controllers.SettingController"
-            prefHeight="400.0" prefWidth="600.0">
+<?import javafx.scene.text.Text?>
+<?import javafx.geometry.Insets?>
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="sut.project.oop.gitextfx.controllers.SettingController"
+      prefHeight="400.0" prefWidth="600.0">
+    <padding>
+        <Insets bottom="12" left="12" right="12" top="12" />
+    </padding>
 
-</AnchorPane>
+    <ScrollPane VBox.vgrow="ALWAYS">
+        <GridPane hgap="10" vgap="10">
+            <CheckBox fx:id="deleteFileCheckBox"/>
+            <Text GridPane.rowIndex="0" GridPane.columnIndex="1">Delete a new version file after upload as a new version.</Text>
+        </GridPane>
+    </ScrollPane>
+</VBox>
