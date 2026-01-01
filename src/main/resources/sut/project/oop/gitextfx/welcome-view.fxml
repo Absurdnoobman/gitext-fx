@@ -1,25 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.Insets?>
-<?import javafx.scene.control.Button?>
-<?import javafx.scene.control.ScrollPane?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-<?import javafx.scene.text.Text?>
-<?import javafx.scene.control.MenuBar?>
-<?import javafx.scene.control.Menu?>
-<?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.text.*?>
 
-<VBox prefHeight="400.0" prefWidth="600.0"
-      xmlns="http://javafx.com/javafx/17.0.12"
-      xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="sut.project.oop.gitextfx.controllers.WelcomeController">
+<VBox prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="sut.project.oop.gitextfx.controllers.WelcomeController">
 
     <MenuBar>
         <Menu text="File">
-            <MenuItem text="Add File" onAction="#onAddFileButtonPressed"/>
+            <MenuItem onAction="#onAddFileButtonPressed" text="Add File" />
         </Menu>
-        <Menu text="setting" >
-            <MenuItem text="Open setting" onAction="#onSettingPressed" />
+        <Menu text="setting">
+            <MenuItem onAction="#onSettingPressed" text="Open setting" />
         </Menu>
     </MenuBar>
 
@@ -38,9 +31,19 @@
             </padding>
         </HBox>
 
-        <ScrollPane VBox.vgrow="ALWAYS">
-            <VBox fx:id="FileListVBox" spacing="4">
-            </VBox>
+        <HBox spacing="6" >
+            <TextField HBox.hgrow="ALWAYS" />
+            <HBox spacing="8" alignment="CENTER_LEFT">
+                <Label text="Sort by" />
+                <ComboBox fx:id="sortComboBox" prefWidth="160" />
+            </HBox>
+            <padding>
+                <Insets bottom="6" />
+            </padding>
+        </HBox>
+
+        <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS">
+            <VBox fx:id="FileListVBox" spacing="4"/>
         </ScrollPane>
     </VBox>
 </VBox>

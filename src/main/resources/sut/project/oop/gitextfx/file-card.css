@@ -1,0 +1,34 @@
+.file-card {
+    -fx-background-color: -color-bg-subtle;
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+    -fx-border-color: -color-border-muted;
+}
+
+/* Index */
+.file-card-index-box {
+    -fx-background-color: -color-bg-muted;
+    -fx-background-radius: 6;
+}
+
+.file-card-index {
+    -fx-font-weight: bold;
+    -fx-text-fill: -color-fg-muted;
+}
+
+/* Text */
+.file-card-title {
+    -fx-font-size: 14px;
+    -fx-font-weight: 600;
+}
+
+.file-card-subtitle {
+    -fx-font-size: 11px;
+    -fx-text-fill: -color-fg-muted;
+}
+
+/* Button */
+.file-card-action {
+    -fx-background-radius: 8;
+    -fx-padding: 6 14;
+}

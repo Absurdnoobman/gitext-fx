@@ -20,6 +20,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 import java.util.Properties;
 
 public class GitextApp extends Application {
@@ -152,6 +153,12 @@ public class GitextApp extends Application {
 
         var fxmlLoader = new FXMLLoader(GitextApp.class.getResource("welcome-view.fxml"));
         var scene = new Scene(fxmlLoader.load(), 800, 600);
+
+        scene.getStylesheets().add(
+                Objects.requireNonNull(
+                        GitextApp.class.getResource("file-card.css"))
+                        .toExternalForm()
+        );
 
         ((WelcomeController) fxmlLoader.getController()).stage = stage;
 

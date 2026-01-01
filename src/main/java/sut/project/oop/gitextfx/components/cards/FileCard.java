@@ -5,9 +5,8 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.Region;
+import javafx.scene.control.Label;
+import javafx.scene.layout.*;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
 import javafx.stage.Stage;
@@ -20,61 +19,68 @@ import java.io.IOException;
 import java.nio.file.Path;
 
 public class FileCard extends HBox {
-    public FileCard(int index, FileRecord file, Stage old_stage){
-        this.setSpacing(2);
-        this.setPadding(new Insets(4));
-        this.setMaxWidth(Double.MAX_VALUE);
+    public FileCard(int index, FileRecord file, Stage oldStage) {
 
-        // Create index label
-        Text indexLabel = new Text("%d.".formatted(index));
-        indexLabel.setTextAlignment(TextAlignment.CENTER);
+        getStyleClass().add("file-card");
 
-        // Create index div
-        HBox indexDiv = new HBox(indexLabel);
-        indexDiv.setAlignment(Pos.CENTER);
-        indexDiv.setPadding(new Insets(2));
+        // Card container
+        setSpacing(12);
+        setPadding(new Insets(12));
+        setMaxWidth(Double.MAX_VALUE);
+        getStyleClass().add("file-card");
+        setAlignment(Pos.CENTER_LEFT);
 
-        // Create file label and file box
-        Text fileLabel = new Text(file.getFilePath());
-        fileLabel.setTextAlignment(TextAlignment.CENTER);
-        HBox fileBox = new HBox(fileLabel);
-        fileBox.setAlignment(Pos.CENTER);
+        /* ───────── Index ───────── */
+        Label indexLabel = new Label(String.valueOf(index));
+        indexLabel.getStyleClass().add("file-card-index");
 
-        // Create lasted edit date
-        Text lastedEditTxt = new Text("(Lasted Edit %s)".formatted(file.getLastedEdit().format(AppDateFormat.DISPLAY)));
-        lastedEditTxt.setTextAlignment(TextAlignment.CENTER);
+        StackPane indexBox = new StackPane(indexLabel);
+        indexBox.setMinSize(28, 28);
+        indexBox.getStyleClass().add("file-card-index-box");
 
-        HBox dateBox = new HBox(lastedEditTxt);
-        dateBox.setAlignment(Pos.CENTER);
+        /* ───────── File info ───────── */
+        Label fileName = new Label(Path.of(file.getFilePath()).getFileName().toString());
+        fileName.getStyleClass().add("file-card-title");
 
-        // Create spacer
+        Label lastEdit = new Label(
+                "Last edited " + file.getLastedEdit().format(AppDateFormat.DISPLAY)
+        );
+        lastEdit.getStyleClass().add("file-card-subtitle");
+
+        VBox infoBox = new VBox(4, fileName, lastEdit);
+        infoBox.setAlignment(Pos.CENTER_LEFT);
+
+        /* ───────── Spacer ───────── */
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
-        // Create manage button
+        /* ───────── Action ───────── */
         Button manageButton = new Button("Manage");
+        manageButton.getStyleClass().add("file-card-action");
 
-        HBox.setHgrow(manageButton, Priority.NEVER);
+        indexBox.getStyleClass().add("file-card-index-box");
+        indexLabel.getStyleClass().add("file-card-index");
+        fileName.getStyleClass().add("file-card-title");
+        lastEdit.getStyleClass().add("file-card-subtitle");
+        manageButton.getStyleClass().add("file-card-action");
 
         manageButton.setOnAction(_ -> {
-            Stage new_stage = new Stage();
-            FXMLLoader loader = new FXMLLoader(GitextApp.class.getResource("main-panel.fxml"));
-
-            Scene scene = null;
             try {
-                scene = new Scene(loader.load());
-            } catch (IOException e) {
-                return;
-            }
+                Stage newStage = new Stage();
+                FXMLLoader loader =
+                        new FXMLLoader(GitextApp.class.getResource("main-panel.fxml"));
 
-            ( (MainPanelController) loader.getController()).onReady(Path.of(file.getFilePath()), file.getId(), new_stage);
-            new_stage.setTitle("File: %s".formatted(Path.of(file.getFilePath()).getFileName()));
-            new_stage.setScene(scene);
-            new_stage.show();
+                Scene scene = new Scene(loader.load());
+                ((MainPanelController) loader.getController()).onReady(Path.of(file.getFilePath()), file.getId(), newStage);
 
-            old_stage.close();
+                newStage.setTitle("File: " + Path.of(file.getFilePath()).getFileName());
+                newStage.setScene(scene);
+                newStage.show();
+
+                oldStage.close();
+            } catch (IOException _) {}
         });
 
-        getChildren().addAll(indexDiv, fileBox, dateBox, spacer, manageButton);
+        getChildren().addAll(indexBox, infoBox, spacer, manageButton);
     }
 }

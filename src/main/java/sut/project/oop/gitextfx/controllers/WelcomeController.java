@@ -3,43 +3,85 @@ package sut.project.oop.gitextfx.controllers;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
+import javafx.scene.control.ComboBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import sut.project.oop.gitextfx.GitextApp;
 import sut.project.oop.gitextfx.clazz.*;
 import sut.project.oop.gitextfx.components.cards.FileCard;
+import sut.project.oop.gitextfx.enums.UIeditSortOrder;
 import sut.project.oop.gitextfx.models.FileRecord;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
-import java.util.zip.GZIPOutputStream;
+import java.util.function.BiPredicate;
 
 public class WelcomeController {
     public Stage stage;
+    @FXML
+    public ComboBox<UIeditSortOrder> sortComboBox;
 
     @FXML
     private VBox FileListVBox;
+
+    private List<FileRecord> files = new ArrayList<>();
 
     public void onReady(List<FileRecord> file_result) {
         FileListVBox.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
         FileListVBox.setFillWidth(true);
 
-        int i = 1;
+        sortComboBox.getItems().setAll(
+                UIeditSortOrder.LAST_EDIT_NEWEST,
+                UIeditSortOrder.LAST_EDIT_OLDEST
+        );
 
-        for (var f : file_result) {
-            var card = new FileCard(i, f, stage);
-            FileListVBox.getChildren().add(card);
+        sortComboBox.setValue(UIeditSortOrder.LAST_EDIT_NEWEST);
 
-            i++;
+        sortComboBox.valueProperty().addListener(
+                (_, _, newValue) -> applySort(newValue)
+        );
+
+        files = file_result;
+
+        refreshFileList();
+    }
+
+    private void applySort(UIeditSortOrder order) {
+        switch (order) {
+            case LAST_EDIT_NEWEST -> sortByLastEditNewest();
+            case LAST_EDIT_OLDEST -> sortByLastEditOldest();
+        }
+        refreshFileList();
+    }
+
+    private void sortByLastEditNewest() {
+        sort(files,
+                (a, b) -> a.getLastedEdit().isBefore(b.getLastedEdit())
+        );
+    }
+
+    private void sortByLastEditOldest() {
+        sort(files,
+                (a, b) -> a.getLastedEdit().isAfter(b.getLastedEdit())
+        );
+    }
+
+    private void refreshFileList() {
+        FileListVBox.getChildren().clear();
+
+        for (int i = 0; i < files.size(); i++) {
+            FileListVBox.getChildren().add(
+                    new FileCard(i + 1, files.get(i), stage)
+            );
         }
     }
 
@@ -120,5 +162,30 @@ public class WelcomeController {
             ErrorDialog.showException("Can not open menu.");
         }
 
+    }
+
+    private void sort(
+            List<FileRecord> list,
+            BiPredicate<FileRecord, FileRecord> shouldSwap
+    ) {
+        int n = list.size();
+        boolean swapped;
+
+        for (int i = 0; i < n - 1; i++) {
+            swapped = false;
+
+            for (int j = 0; j < n - i - 1; j++) {
+                var a = list.get(j);
+                var b = list.get(j + 1);
+
+                if (shouldSwap.test(a, b)) {
+                    list.set(j, b);
+                    list.set(j + 1, a);
+                    swapped = true;
+                }
+            }
+
+            if (!swapped) break; // optimization
+        }
     }
 }
