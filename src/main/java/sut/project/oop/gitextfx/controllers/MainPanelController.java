@@ -309,46 +309,29 @@ public class MainPanelController {
         if (result == null) return;
 
         String full_path = result.getPath();
-        long id = -1;
-        try (var db = new Schema()) {
-            id = db.insertAndReturnID("""
-                    INSERT INTO Files (file_path) VALUES (?)
-                    """, full_path);
+        long id;
+        try {
+            var store = new SqliteStore();
+            Optional<Integer> rs = SettingManager.getDeltaInterval();
+
+            id = store.insertNewFileRecord(full_path, LocalDateTime.now(), rs.orElse(5));
 
             if (id == -1) {
                 ErrorDialog.showException("Can not insert a file.");
                 return;
             }
 
-            var bos = new ByteArrayOutputStream();
-            var gzip = new GZIPOutputStream(bos);
-
             FileReader reader = new FileReader(full_path);
             String raw = reader.readAllAsString();
-            byte[] data = raw.getBytes(StandardCharsets.UTF_8);
+            reader.close();
 
-            gzip.write(data);
-            gzip.close();
+            byte[] compressed = CompressionUtil.compress(raw);
 
-            byte[] compressed = bos.toByteArray();
-
-            var is_success = db.execute("""
-                    INSERT INTO Versions (file_id, parent_id, tag, is_delta, compressed, created_at)
-                    VALUES ( ?, NULL, 'First version', FALSE, ? )
-                    """,
-                    id, compressed, LocalDateTime.now()
-            );
-
-            if (!is_success) ErrorDialog.showException("Can not insert a version.");
+            store.insertVersion((int) id, false, compressed, null, "First Version");
 
         } catch (SQLException | IOException e) {
-            var is_dev_mode = Boolean.parseBoolean(System.getProperty("dev"));
-
-            if (is_dev_mode) {
-                ErrorDialog.showDevException(e, "cannot execute database operations");
-            } else {
-                ErrorDialog.showException("cannot execute database operations");
-            }
+            ErrorDialog.showDevException(e, "Error!!");
+            return;
         }
 
         Stage new_stage = new Stage();
@@ -362,8 +345,6 @@ public class MainPanelController {
             ErrorDialog.showException("Can not open menu.");
             return;
         }
-
-        if (id == -1) return;
 
         final Path path = Path.of(full_path);
         ((MainPanelController) loader.getController()).onReady(path, id, new_stage);
@@ -400,6 +381,11 @@ public class MainPanelController {
             Stage new_stage = new Stage();
             FXMLLoader loader = new FXMLLoader(GitextApp.class.getResource("welcome-view.fxml"));
             var scene = new Scene(loader.load(), 800, 600);
+            scene.getStylesheets().add(
+                    Objects.requireNonNull(
+                                    GitextApp.class.getResource("file-card.css"))
+                            .toExternalForm()
+            );
 
             ((WelcomeController) loader.getController()).stage = new_stage;
             ((WelcomeController) loader.getController()).onReady(files);

@@ -4,6 +4,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.TextField;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
@@ -20,7 +21,6 @@ import java.nio.file.Path;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.BiPredicate;
@@ -29,11 +29,14 @@ public class WelcomeController {
     public Stage stage;
     @FXML
     public ComboBox<UIeditSortOrder> sortComboBox;
+    @FXML
+    public TextField searchTextField;
 
     @FXML
     private VBox FileListVBox;
 
-    private List<FileRecord> files = new ArrayList<>();
+    private List<FileRecord> originalFiles = new ArrayList<>();
+    private List<FileRecord> viewFiles = new ArrayList<>();
 
     public void onReady(List<FileRecord> file_result) {
         FileListVBox.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
@@ -46,41 +49,63 @@ public class WelcomeController {
 
         sortComboBox.setValue(UIeditSortOrder.LAST_EDIT_NEWEST);
 
-        sortComboBox.valueProperty().addListener(
-                (_, _, newValue) -> applySort(newValue)
-        );
+        searchTextField.textProperty().addListener((_, _, _) -> updateView());
 
-        files = file_result;
+        sortComboBox.valueProperty().addListener((_, _, _) -> updateView());
 
-        refreshFileList();
+        originalFiles = file_result;
+        viewFiles.addAll(file_result);
+
+        updateView();
     }
 
-    private void applySort(UIeditSortOrder order) {
-        switch (order) {
+    private void updateView() {
+        viewFiles = search(searchTextField.getText());
+
+        switch (sortComboBox.getValue()) {
             case LAST_EDIT_NEWEST -> sortByLastEditNewest();
             case LAST_EDIT_OLDEST -> sortByLastEditOldest();
         }
-        refreshFileList();
+
+        refreshFileList(viewFiles);
     }
 
     private void sortByLastEditNewest() {
-        sort(files,
+        sort(originalFiles,
                 (a, b) -> a.getLastedEdit().isBefore(b.getLastedEdit())
         );
     }
 
     private void sortByLastEditOldest() {
-        sort(files,
+        sort(originalFiles,
                 (a, b) -> a.getLastedEdit().isAfter(b.getLastedEdit())
         );
     }
 
-    private void refreshFileList() {
+    private List<FileRecord> search(String keyword) {
+        if (keyword == null || keyword.isBlank()) {
+            return new ArrayList<>(originalFiles);
+        }
+
+        List<FileRecord> result = new ArrayList<>();
+
+        for (var file : originalFiles) {
+            if (file.getFilePath()
+                    .toLowerCase()
+                    .contains(keyword.toLowerCase())) {
+                result.add(file);
+            }
+        }
+
+        return result;
+    }
+
+    private void refreshFileList(List<FileRecord> ls) {
         FileListVBox.getChildren().clear();
 
-        for (int i = 0; i < files.size(); i++) {
+        for (int i = 0; i < ls.size(); i++) {
             FileListVBox.getChildren().add(
-                    new FileCard(i + 1, files.get(i), stage)
+                    new FileCard(i + 1, ls.get(i), stage)
             );
         }
     }
@@ -185,7 +210,7 @@ public class WelcomeController {
                 }
             }
 
-            if (!swapped) break; // optimization
+            if (!swapped) break;
         }
     }
 }

@@ -32,10 +32,10 @@
         </HBox>
 
         <HBox spacing="6" >
-            <TextField HBox.hgrow="ALWAYS" />
+            <TextField fx:id="searchTextField" HBox.hgrow="ALWAYS" promptText="Search by file's name" />
             <HBox spacing="8" alignment="CENTER_LEFT">
                 <Label text="Sort by" />
-                <ComboBox fx:id="sortComboBox" prefWidth="160" />
+                <ComboBox fx:id="sortComboBox" prefWidth="160"/>
             </HBox>
             <padding>
                 <Insets bottom="6" />
