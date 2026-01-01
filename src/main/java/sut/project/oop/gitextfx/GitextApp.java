@@ -1,5 +1,6 @@
 package sut.project.oop.gitextfx;
 
+import atlantafx.base.theme.PrimerLight;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
@@ -131,6 +132,8 @@ public class GitextApp extends Application {
 
     @Override
     public void start(Stage stage) throws IOException {
+        Application.setUserAgentStylesheet(new PrimerLight().getUserAgentStylesheet());
+
         try {
             var is_new = prepareFiles();
             if (is_new) prepareDB();
@@ -148,7 +151,7 @@ public class GitextApp extends Application {
         }
 
         var fxmlLoader = new FXMLLoader(GitextApp.class.getResource("welcome-view.fxml"));
-        var scene = new Scene(fxmlLoader.load(), 600, 400);
+        var scene = new Scene(fxmlLoader.load(), 800, 600);
 
         ((WelcomeController) fxmlLoader.getController()).stage = stage;
 

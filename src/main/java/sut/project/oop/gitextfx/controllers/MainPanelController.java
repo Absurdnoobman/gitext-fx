@@ -399,7 +399,7 @@ public class MainPanelController {
 
             Stage new_stage = new Stage();
             FXMLLoader loader = new FXMLLoader(GitextApp.class.getResource("welcome-view.fxml"));
-            var scene = new Scene(loader.load(), 600, 400);
+            var scene = new Scene(loader.load(), 800, 600);
 
             ((WelcomeController) loader.getController()).stage = new_stage;
             ((WelcomeController) loader.getController()).onReady(files);

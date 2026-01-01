@@ -3,6 +3,7 @@ package sut.project.oop.gitextfx.clazz;
 import sut.project.oop.gitextfx.AppPath;
 
 import java.io.*;
+import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.Properties;
 
@@ -24,10 +25,16 @@ public class SettingManager {
         }
     }
 
-    public static void setDeltaInterval(int new_value) {
+    public static boolean setDeltaInterval(int new_value) {
         Properties settings = new Properties();
         settings.setProperty("defaultNonDeltaInterval", String.valueOf(new_value));
-    }
+        try {
+            settings.storeToXML(new FileOutputStream(AppPath.PROP_PATH), LocalDateTime.now().toString());
 
+            return true;
+        } catch (IOException e) {
+            return false;
+        }
+    }
 
 }

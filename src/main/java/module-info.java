@@ -13,6 +13,7 @@ module sut.project.oop.gitextfx {
     requires java.sql;
     requires javafx.graphics;
     requires io.github.javadiffutils;
+    requires atlantafx.base;
 
     opens sut.project.oop.gitextfx to javafx.fxml;
     exports sut.project.oop.gitextfx;
