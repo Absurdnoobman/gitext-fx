@@ -31,3 +31,10 @@
     -fx-background-radius: 8;
     -fx-padding: 6 14;
 }
+
+.file-card-action-destructive {
+    -fx-background-radius: 8;
+    -fx-padding: 6 14;
+    -fx-background-color: -color-danger-fg;
+    -fx-text-fill: -color-light;
+}

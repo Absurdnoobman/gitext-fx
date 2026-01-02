@@ -38,7 +38,7 @@ public class GitextApp extends Application {
             db.execute("""
                     CREATE TABLE IF NOT EXISTS Versions (
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
-                        file_id INTEGER REFERENCES Files(id) ,
+                        file_id INTEGER REFERENCES Files(id) ON DELETE Cascade,
                         parent_id INTEGER,
                         tag VARCHAR(12) NOT NULL,
                         is_delta BOOLEAN NOT NULL,
@@ -104,7 +104,7 @@ public class GitextApp extends Application {
             db.execute("""
                     CREATE TABLE IF NOT EXISTS Versions (
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
-                        file_id INTEGER REFERENCES Files(id) ,
+                        file_id INTEGER REFERENCES Files(id) ON DELETE Cascade,
                         parent_id INTEGER,
                         tag VARCHAR(12) NOT NULL,
                         is_delta BOOLEAN NOT NULL,

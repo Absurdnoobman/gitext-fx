@@ -59,6 +59,21 @@ public class WelcomeController {
         updateView();
     }
 
+    public void queryOriginalFileRecords() {
+        try {
+            var store = new SqliteStore();
+            var rs = store.getAllFileRecords();
+            originalFiles = rs;
+            viewFiles.clear();
+            viewFiles.addAll(rs);
+        } catch (SQLException e) {
+            ErrorDialog.showDevException(e, "Can not get file records.");
+            return;
+        }
+
+        updateView();
+    }
+
     private void updateView() {
         viewFiles = search(searchTextField.getText());
 
@@ -105,7 +120,7 @@ public class WelcomeController {
 
         for (int i = 0; i < ls.size(); i++) {
             FileListVBox.getChildren().add(
-                    new FileCard(i + 1, ls.get(i), stage)
+                    new FileCard(i + 1, ls.get(i), this)
             );
         }
     }

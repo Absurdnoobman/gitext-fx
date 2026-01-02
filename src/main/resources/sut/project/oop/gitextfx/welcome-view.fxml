@@ -22,7 +22,7 @@
         </padding>
 
         <HBox spacing="12" HBox.hgrow="ALWAYS">
-            <Text style="-fx-font-family: 'Inter'; -fx-font-size: 26px;" text="Your Files" />
+            <Text style="-fx-font-size: 26px;" text="Your Files" />
             <Region HBox.hgrow="ALWAYS" />
             <Button onAction="#onAddFileButtonPressed">Add file</Button>
             <Button onAction="#onSettingPressed">Setting</Button>
