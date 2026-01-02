@@ -33,7 +33,9 @@
             </VBox>
             <Separator />
             <Text text="Version History" style="-fx-font-size: 14px; -fx-font-weight: bold;"/>
-            <VBox fx:id="VersionsList"/>
+            <VBox fx:id="VersionsList" VBox.vgrow="ALWAYS"/>
+            <Separator/>
+            <Button text="Delete all version forget this file" style="-fx-background-color: -color-danger-fg; -fx-text-fill: -color-light" onAction="#onDeleteFileButtonPressed"/>
         </VBox>
     </left>
     <center>
@@ -85,7 +87,7 @@
 
             <Button text="Use this version" onAction="#onUseThisVersionButtonPressed"/>
             <Button text="Upload new version" onAction="#onNewVersionButtonPressed"/>
-            <Button fx:id="deleteVersionBtn" text="Delete version" onAction="#onDeleteVersionButtonPressed"/>
+            <Button fx:id="deleteVersionBtn" text="Delete version" onAction="#onDeleteVersionButtonPressed" style="-fx-background-color: -color-danger-fg; -fx-text-fill: -color-light"/>
         </VBox>
     </right>
 

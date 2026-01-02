@@ -46,6 +46,7 @@ public class MainPanelController {
     public Label typeValue;
     @FXML
     public Button deleteVersionBtn;
+
     private final List<VersionTag> tags = new ArrayList<>();
 
     private Version SelectedVersion = null;
@@ -399,5 +400,36 @@ public class MainPanelController {
         } catch (SQLException | IOException e) {
             ErrorDialog.showDevException(e, "Can not open a list.");
         }
+    }
+
+    @FXML
+    private void onDeleteFileButtonPressed() {
+        Alert dialog = new Alert(Alert.AlertType.CONFIRMATION, "Do you want to delete all version history of this file.");
+        var result = dialog.showAndWait();
+
+        if (result.isEmpty()) {
+            return;
+        }
+
+        if (Objects.requireNonNull(result.get().getButtonData()) == ButtonBar.ButtonData.OK_DONE) {
+            delete_all_record();
+            onOpenFileListMenuPressed();
+        }
+    }
+
+    private void delete_all_record() {
+        try {
+            var store = new SqliteStore();
+
+            for (var tag: tags) {
+                store.deleteFileRecord(tag.row_id());
+            }
+
+            store.deleteFileRecord((int) fileId);
+
+        } catch (SQLException e) {
+            ErrorDialog.showDevException(e, "Can not delete a record.");
+        }
+
     }
 }
