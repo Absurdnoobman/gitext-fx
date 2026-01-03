@@ -46,6 +46,8 @@ public class MainPanelController {
     public Label typeValue;
     @FXML
     public Button deleteVersionBtn;
+    @FXML
+    public TextField searchVersionField;
 
     private final List<VersionTag> tags = new ArrayList<>();
 
