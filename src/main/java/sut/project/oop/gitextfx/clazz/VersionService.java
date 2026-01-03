@@ -37,16 +37,13 @@ public class VersionService {
 
         var parent_id = is_delta ? last_major.row_id() : null;
 
-        var inserted_id = store.insertVersion(
+        return store.insertVersion(
                 file_id,
                 is_delta,
                 compressed,
                 parent_id,
                 new_tag
         );
-
-        tags.add(new VersionTag(inserted_id, new_tag, is_delta));
-        return inserted_id;
     }
 
     private List<Integer> find_dependents(int fileId, int parentId) throws SQLException {
@@ -60,7 +57,7 @@ public class VersionService {
         }
 
         var dependent_ids = find_dependents(version.getFileId(), version.getId());
-        sortBB(dependent_ids);
+        SortUtil.bubble(dependent_ids);
 
         if (dependent_ids.isEmpty()) {
             store.deleteVersion(version.getId());
@@ -117,17 +114,5 @@ public class VersionService {
 
     public List<VersionTag> loadTags(int fileId) throws SQLException {
         return store.getVersionTagsOf(fileId);
-    }
-
-    private static void sortBB(List<Integer> list) {
-        for (int round = 1; round <= list.size() - 1; round++) {
-            for (int i = 0; i < list.size() - round; i++) {
-                if (list.get(i) > list.get(i + 1)) {
-                    var temp = list.get(i);
-                    list.set(i, list.get(i + 1));
-                    list.set(i + 1, temp);
-                }
-            }
-        }
     }
 }

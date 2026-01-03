@@ -14,6 +14,7 @@ import sut.project.oop.gitextfx.AppDateFormat;
 import sut.project.oop.gitextfx.AppPath;
 import sut.project.oop.gitextfx.GitextApp;
 import sut.project.oop.gitextfx.clazz.*;
+import sut.project.oop.gitextfx.models.FileRecord;
 import sut.project.oop.gitextfx.models.Version;
 import sut.project.oop.gitextfx.models.VersionTag;
 
@@ -47,6 +48,7 @@ public class MainPanelController {
     public TextField searchVersionField;
 
     private final List<VersionTag> tags = new ArrayList<>();
+    private List<VersionTag> viewTags = new ArrayList<>();
 
     private Version SelectedVersion = null;
 
@@ -62,8 +64,13 @@ public class MainPanelController {
         filenameLabel.setText(filepath.getFileName().toString());
 
         tags.clear();
+
         try {
-            tags.addAll(versionService.loadTags((int) fileId));
+
+            var ts = versionService.loadTags((int) fileId);
+            tags.addAll(ts);
+            viewTags.addAll(ts);
+
         } catch (Exception e) {
             ErrorDialog.showDevException(e, "Fatal error: fail to load all tags");
         }
@@ -78,6 +85,32 @@ public class MainPanelController {
             ErrorDialog.showDevException(e, "Can not render version %s".formatted(tags.getLast().tag()));
         }
 
+        searchVersionField.textProperty().addListener((_, _,_) -> onSearchTextFieldTextChanged());
+
+    }
+
+    private void onSearchTextFieldTextChanged() {
+         viewTags = search(searchVersionField.getText());
+
+         renderList();
+    }
+
+    private List<VersionTag> search(String keyword) {
+        if (keyword == null || keyword.isBlank()) {
+            return new ArrayList<>(tags);
+        }
+
+        List<VersionTag> result = new ArrayList<>();
+
+        for (var t : tags) {
+            if (t.tag()
+                    .toLowerCase()
+                    .contains(keyword.toLowerCase())) {
+                result.add(t);
+            }
+        }
+
+        return result;
     }
 
     private void renderList() {
@@ -92,8 +125,9 @@ public class MainPanelController {
 
         VersionsList.getChildren().clear();
 
-        for (var v: tags) {
+        for (var v: viewTags) {
             var txt = new Text(v.tag());
+
             txt.setOnMouseClicked(_ -> {
                 try {
                     renderVersion(v.row_id());
@@ -101,42 +135,35 @@ public class MainPanelController {
                     ErrorDialog.showDevException(e, "Can not render version %s".formatted(v.tag()));
                 }
             });
+
             VersionsList.getChildren().add(txt);
         }
     }
 
     private void renderVersion(int id) throws Exception {
         try {
-            var this_version = new SqliteStore().getVersion(id);
+            var store = new SqliteStore();
+            var resolver = new VersionResolver(store, new PatchService());
+
+            var this_version = store.getVersion(id);
 
             var history = new VersionHistory(tags);
 
             String text = CompressionUtil.decompress(this_version.getCompressed());
 
-            if (!this_version.isDelta()) { // is non-delta version (major)
-                unifiedDiffArea.setText(text);
-            } else {
-                var last_major_tag = history.findBaseOf(id);
-                var interval = history.findDeltas(last_major_tag.row_id(), id);
+            VersionTag current = history.findById(id);
+            VersionTag previous = history.findPreviousOf(id);
 
-                if (interval.size() <= 1) { // next to non-delta version
-                    unifiedDiffArea.setText(text);
-                } else {
-                    var previous_version = interval.getLast();
+            String oldText = resolver.resolve((int) fileId, previous.row_id());
+            String newText = resolver.resolve((int) fileId, current.row_id());
 
-                    VersionResolver resolver = new VersionResolver(new SqliteStore(), new PatchService());
-
-                    var previous_version_content = resolver.resolve((int) fileId, previous_version.row_id());
-
-                    var unified_diff = UnifiedDiffUtils.generateUnifiedDiff(
-                            "old", "new",
-                            previous_version_content.lines().toList(),
-                            new PatchService().parseFromStr(new SqliteStore().load((int) fileId, id)),
-                            3
-                    );
-
-                    unifiedDiffArea.setText(String.join("\n", unified_diff));
-                }
+            var unifiedDiff = UnifiedDiffUtils.generateUnifiedDiff(
+                    previous.tag(),
+                    current.tag(),
+                    oldText.lines().toList(),
+                    newText.lines().toList(),
+                    3
+            );
 
             }
             versionValue.setText(this_version.getTag());
@@ -170,6 +197,11 @@ public class MainPanelController {
                     content,
                     new_tag
             );
+            tags.clear();
+            tags.addAll(new SqliteStore().getVersionTagsOf((int) fileId));
+
+            viewTags.clear();
+            viewTags.addAll(new SqliteStore().getVersionTagsOf((int) fileId));
 
             renderList();
             renderVersion(version_id);
@@ -248,6 +280,7 @@ public class MainPanelController {
             tags.addAll(updated_tags);
 
             tags.removeIf(tag -> tag.row_id() == SelectedVersion.getId());
+            viewTags.removeIf(tag -> tag.row_id() == SelectedVersion.getId());
 
             renderList();
             renderVersion(tags.getLast().row_id());

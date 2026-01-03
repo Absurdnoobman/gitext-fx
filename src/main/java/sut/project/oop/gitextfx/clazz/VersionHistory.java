@@ -8,6 +8,7 @@ public class VersionHistory {
 
     private final List<VersionTag> versions;
     public VersionHistory(List<VersionTag> versions) {
+        SortUtil.sortByIntKey(versions, VersionTag::row_id);
         this.versions = versions;
     }
 
@@ -33,5 +34,12 @@ public class VersionHistory {
                                 v.row_id() <= target_id
                 )
                 .toList();
+    }
+
+    public VersionTag findPreviousOf(int id) {
+        return versions.stream()
+                .filter(v -> v.row_id() < id)
+                .toList()
+                .getLast();
     }
 }
