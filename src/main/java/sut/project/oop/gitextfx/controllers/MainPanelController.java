@@ -1,6 +1,8 @@
 package sut.project.oop.gitextfx.controllers;
 
+import com.github.difflib.DiffUtils;
 import com.github.difflib.UnifiedDiffUtils;
+import com.github.difflib.patch.Patch;
 import com.github.difflib.patch.PatchFailedException;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -143,29 +145,48 @@ public class MainPanelController {
     private void renderVersion(int id) throws Exception {
         try {
             var store = new SqliteStore();
-            var resolver = new VersionResolver(store, new PatchService());
+            var patch_service = new PatchService();
+            var resolver = new VersionResolver(store, patch_service);
 
             var this_version = store.getVersion(id);
 
             var history = new VersionHistory(tags);
 
-            String text = CompressionUtil.decompress(this_version.getCompressed());
+            var text = CompressionUtil.decompress(this_version.getCompressed());
 
-            VersionTag current = history.findById(id);
-            VersionTag previous = history.findPreviousOf(id);
+            if (history.versionCount() <= 1) {
+                unifiedDiffArea.setText(text);
 
-            String oldText = resolver.resolve((int) fileId, previous.row_id());
-            String newText = resolver.resolve((int) fileId, current.row_id());
+                versionValue.setText(this_version.getTag());
+                createdAtValue.setText(this_version.getCreatedAt().format(AppDateFormat.DISPLAY));
+                typeValue.setText(this_version.isDelta() ? "Delta" : "Real");
+
+                SelectedVersion = this_version;
+
+                return;
+            }
+
+            var previous = history.findPreviousOf(id);
+
+            String old_text = resolver.resolve((int) fileId, previous.row_id());
+
+            Patch<String> patch;
+            if (this_version.isDelta()) {
+                patch = patch_service.parseFromStr(text);
+            } else {
+                patch = DiffUtils.diff(old_text.lines().toList(), text.lines().toList());
+            }
 
             var unifiedDiff = UnifiedDiffUtils.generateUnifiedDiff(
                     previous.tag(),
-                    current.tag(),
-                    oldText.lines().toList(),
-                    newText.lines().toList(),
+                    this_version.getTag(),
+                    old_text.lines().toList(),
+                    patch,
                     3
             );
 
-            }
+            unifiedDiffArea.setText(String.join("\n", unifiedDiff));
+
             versionValue.setText(this_version.getTag());
             createdAtValue.setText(this_version.getCreatedAt().format(AppDateFormat.DISPLAY));
             typeValue.setText(this_version.isDelta() ? "Delta" : "Real");

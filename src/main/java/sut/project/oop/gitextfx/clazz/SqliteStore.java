@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class SqliteStore implements IVersionStore, IFileRecordStore {
+    /// Get a decompressed content. can be either delta patch or real content.
     @Override
     public String load(int fileId, int versionId) throws SQLException, IOException {
         try (var db = new Schema()) {

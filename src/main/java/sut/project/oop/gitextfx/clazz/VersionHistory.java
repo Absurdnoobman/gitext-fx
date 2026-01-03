@@ -42,4 +42,8 @@ public class VersionHistory {
                 .toList()
                 .getLast();
     }
+
+    public int versionCount() {
+        return versions.size();
+    }
 }
