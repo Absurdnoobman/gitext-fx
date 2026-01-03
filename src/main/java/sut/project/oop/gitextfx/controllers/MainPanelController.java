@@ -14,19 +14,16 @@ import sut.project.oop.gitextfx.AppDateFormat;
 import sut.project.oop.gitextfx.AppPath;
 import sut.project.oop.gitextfx.GitextApp;
 import sut.project.oop.gitextfx.clazz.*;
-import sut.project.oop.gitextfx.models.FileRecord;
 import sut.project.oop.gitextfx.models.Version;
 import sut.project.oop.gitextfx.models.VersionTag;
 
 import java.io.*;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.zip.GZIPOutputStream;
 
 public class MainPanelController {
     private Stage stage;
@@ -341,7 +338,7 @@ public class MainPanelController {
 
         FXMLLoader loader = new FXMLLoader(GitextApp.class.getResource("main-panel.fxml"));
 
-        Scene scene = null;
+        Scene scene;
         try {
             scene = new Scene(loader.load());
         } catch (IOException e) {
