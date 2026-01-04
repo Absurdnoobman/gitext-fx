@@ -106,11 +106,9 @@ public class GitextApp extends Application {
                         .toExternalForm()
         );
 
-        ((WelcomeController) fxmlLoader.getController()).stage = stage;
-
         try {
             List<FileRecord>  files = store.getAllFileRecords();
-            ((WelcomeController) fxmlLoader.getController()).onReady(files);
+            ((WelcomeController) fxmlLoader.getController()).onReady(files, stage);
         } catch (SQLException e) {
             ErrorDialog.showDevException(e, "Fatal Error: can not launch the app.");
         }

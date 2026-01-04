@@ -30,7 +30,7 @@ public class SortUtil {
         sort(list, shouldSwap);
     }
 
-    private static <T, U> void sort(List<T> ls, BiPredicate<T, T> checker) {
+    private static <T> void sort(List<T> ls, BiPredicate<T, T> checker) {
         for (int pass = 1; pass < ls.size(); pass++) {
             for (int i = 0; i < ls.size() - pass; i++) {
                 if (checker.test(ls.get(i), ls.get(i + 1))) {

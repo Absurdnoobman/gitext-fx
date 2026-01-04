@@ -89,7 +89,7 @@ public class FileCard extends HBox {
                 newStage.setScene(scene);
                 newStage.show();
 
-                ctrl.stage.close();
+                ctrl.getStage().close();
             } catch (IOException _) {}
         });
 
@@ -111,7 +111,7 @@ public class FileCard extends HBox {
             ctrl.queryOriginalFileRecords();
 
             Alert alert = new Alert(Alert.AlertType.INFORMATION, "Success!");
-            alert.initOwner(ctrl.stage);
+            alert.initOwner(ctrl.getStage());
             alert.setTitle("Success");
             alert.setHeaderText(null);
             alert.showAndWait();

@@ -27,7 +27,7 @@ import java.util.Optional;
 import java.util.function.BiPredicate;
 
 public class WelcomeController {
-    public Stage stage;
+    private Stage stage;
     @FXML
     public ComboBox<UIeditSortOrder> sortComboBox;
     @FXML
@@ -39,7 +39,10 @@ public class WelcomeController {
     private List<FileRecord> originalFiles = new ArrayList<>();
     private List<FileRecord> viewFiles = new ArrayList<>();
 
-    public void onReady(List<FileRecord> file_result) {
+    public Stage getStage() {return stage;}
+
+    public void onReady(List<FileRecord> file_result, Stage stage) {
+        this.stage = stage;
         FileListVBox.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
         FileListVBox.setFillWidth(true);
 

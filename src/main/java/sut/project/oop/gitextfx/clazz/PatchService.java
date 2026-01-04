@@ -9,13 +9,11 @@ import java.util.Arrays;
 public final class PatchService {
 
     public String apply(String base, String unifiedDiff) throws PatchFailedException {
-
         Patch<String> patch = parseFromStr(unifiedDiff);
-
         return String.join("\n", patch.applyTo(base.lines().toList()));
     }
 
-    public Patch<String> parseFromStr(String diff_str) {
-        return UnifiedDiffUtils.parseUnifiedDiff(Arrays.asList(diff_str.split("\n", -1)));
+    public Patch<String> parseFromStr(String diffStr) {
+        return UnifiedDiffUtils.parseUnifiedDiff(Arrays.asList(diffStr.split("\n", -1)));
     }
 }

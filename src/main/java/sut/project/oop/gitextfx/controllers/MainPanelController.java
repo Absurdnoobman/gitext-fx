@@ -207,7 +207,7 @@ public class MainPanelController {
 
             versionValue.setText(this_version.getTag());
             createdAtValue.setText(this_version.getCreatedAt().format(AppDateFormat.DISPLAY));
-            typeValue.setText(this_version.isDelta() ? "Delta" : "Real");
+            typeValue.setText(this_version.isDelta() ? "Changes" : "Full");
 
             SelectedVersion = this_version;
 
@@ -218,7 +218,7 @@ public class MainPanelController {
         }
     }
 
-    private void renderDiff(java.util.List<String> lines) {
+    private void renderDiff(List<String> lines) {
         diffContainer.getChildren().clear();
 
         int oldLine = 1;
@@ -516,8 +516,7 @@ public class MainPanelController {
                             .toExternalForm()
             );
 
-            ((WelcomeController) loader.getController()).stage = new_stage;
-            ((WelcomeController) loader.getController()).onReady(files);
+            ((WelcomeController) loader.getController()).onReady(files, new_stage);
 
             new_stage.setTitle("Welcome");
             new_stage.setScene(scene);

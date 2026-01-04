@@ -10,11 +10,11 @@ import java.util.List;
 public class VersionService {
 
     private final IVersionStore store;
-    private final DiffService diff_service;
+    private final DiffService diffService;
 
     public VersionService(IVersionStore store) {
         this.store = store;
-        this.diff_service = new DiffService();
+        this.diffService = new DiffService();
     }
 
     public int createNewVersion(
@@ -32,7 +32,7 @@ public class VersionService {
         var is_delta = should_be_delta(file_id, tags, last_major);
 
         var compressed = is_delta
-                ? diff_service.createDelta(store, file_id, last_major.row_id(), content)
+                ? diffService.createDelta(store, file_id, last_major.row_id(), content)
                 : CompressionUtil.compress(String.join("\n", content));
 
         var parent_id = is_delta ? last_major.row_id() : null;

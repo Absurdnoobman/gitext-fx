@@ -16,7 +16,6 @@ module sut.project.oop.gitextfx {
     opens sut.project.oop.gitextfx to javafx.fxml;
     exports sut.project.oop.gitextfx;
     opens sut.project.oop.gitextfx.controllers;
-    opens sut.project.oop.gitextfx.components;
     exports sut.project.oop.gitextfx.enums;
     opens sut.project.oop.gitextfx.enums to javafx.fxml;
 }
