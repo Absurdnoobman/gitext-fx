@@ -6,8 +6,11 @@ import com.github.difflib.patch.Patch;
 import com.github.difflib.patch.PatchFailedException;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
@@ -16,7 +19,6 @@ import sut.project.oop.gitextfx.AppDateFormat;
 import sut.project.oop.gitextfx.AppPath;
 import sut.project.oop.gitextfx.GitextApp;
 import sut.project.oop.gitextfx.clazz.*;
-import sut.project.oop.gitextfx.models.FileRecord;
 import sut.project.oop.gitextfx.models.Version;
 import sut.project.oop.gitextfx.models.VersionTag;
 
@@ -29,6 +31,10 @@ import java.time.LocalDateTime;
 import java.util.*;
 
 public class MainPanelController {
+    @FXML
+    public VBox diffContainer;
+    @FXML
+    public ScrollPane diffScroll;
     private Stage stage;
     @FXML
     public Text filenameLabel;
@@ -36,8 +42,6 @@ public class MainPanelController {
     public Text fullpathLabel;
     @FXML
     public VBox VersionsList;
-    @FXML
-    public TextArea unifiedDiffArea;
     @FXML
     public Label versionValue;
     @FXML
@@ -155,7 +159,7 @@ public class MainPanelController {
             var text = CompressionUtil.decompress(this_version.getCompressed());
 
             if (history.versionCount() <= 1) {
-                unifiedDiffArea.setText(text);
+                renderDiff(text.lines().toList());
 
                 versionValue.setText(this_version.getTag());
                 createdAtValue.setText(this_version.getCreatedAt().format(AppDateFormat.DISPLAY));
@@ -178,14 +182,14 @@ public class MainPanelController {
             }
 
             var unifiedDiff = UnifiedDiffUtils.generateUnifiedDiff(
-                    previous.tag(),
-                    this_version.getTag(),
+                    "",
+                    "",
                     old_text.lines().toList(),
                     patch,
                     3
             );
 
-            unifiedDiffArea.setText(String.join("\n", unifiedDiff));
+            renderDiff(unifiedDiff);
 
             versionValue.setText(this_version.getTag());
             createdAtValue.setText(this_version.getCreatedAt().format(AppDateFormat.DISPLAY));
@@ -199,6 +203,54 @@ public class MainPanelController {
             ErrorDialog.showDevException(e, "Can not patch");
         }
     }
+
+    private void renderDiff(java.util.List<String> lines) {
+        diffContainer.getChildren().clear();
+
+        int oldLine = 1;
+        int newLine = 1;
+
+        for (String line : lines) {
+            Label lineNumber = new Label();
+            lineNumber.setMinWidth(45);
+            lineNumber.setAlignment(Pos.TOP_RIGHT);
+            lineNumber.setStyle("-fx-text-fill: #6a737d; -fx-font-family: 'Consolas';");
+
+            // line number
+            if (line.startsWith("+") && !line.startsWith("+++")) {
+                lineNumber.setText(String.valueOf(newLine++));
+            } else if (line.startsWith("-") && !line.startsWith("---")) {
+                lineNumber.setText(String.valueOf(oldLine++));
+            } else if (line.startsWith("@@") || line.startsWith("+++") || line.startsWith("---")) {
+                lineNumber.setText("");
+                oldLine = newLine = 1; // placeholder reset
+            } else {
+                lineNumber.setText(oldLine + " | " + newLine);
+                oldLine++;
+                newLine++;
+            }
+
+            Text text = new Text(line);
+            text.setStyle(get_diff_style(line));
+
+            HBox row = new HBox(8, lineNumber, text);
+            row.setAlignment(Pos.TOP_LEFT);
+            row.setPadding(new Insets(0, 4, 0, 4));
+
+
+            diffContainer.getChildren().add(row);
+        }
+    }
+
+    private String get_diff_style(String line) {
+        return switch (line.charAt(0)) {
+            case '+'-> "-fx-fill: #22863a; -fx-font-family: 'Consolas';";
+            case '-' -> "-fx-fill: #b31d28; -fx-font-family: 'Consolas';";
+            case '@' -> "-fx-fill: #6f42c1; -fx-font-family: 'Consolas';";
+            default -> "-fx-fill: #24292e; -fx-font-family: 'Consolas';";
+        };
+    }
+
 
     @FXML
     private void onNewVersionButtonPressed() {

@@ -45,20 +45,13 @@
                 <Insets top="5" right="10" bottom="10" left="10"/>
             </padding>
 
-            <HBox spacing="10" alignment="CENTER_LEFT">
-                <Label text="Unified Diff" style="-fx-font-size: 14px; -fx-font-weight: bold;"/>
-
-                <!-- Placeholder controls -->
-                <CheckBox text="Show line numbers" disable="true" />
-                <CheckBox text="Ignore whitespace" disable="true" />
-            </HBox>
-
-
-            <!-- Unified diff text area -->
-            <TextArea fx:id="unifiedDiffArea"
-                      editable="false"
-                      VBox.vgrow="ALWAYS"
-                      style="-fx-font-family: 'Consolas';" />
+            <!-- diff text area -->
+            <ScrollPane fx:id="diffScroll" fitToWidth="true" style="-fx-border-color: -color-dark;  -fx-border-radius: 0.5px; -fx-border-radius: 6px" VBox.vgrow="ALWAYS">
+                <padding>
+                    <Insets top="5" />
+                </padding>
+                <VBox fx:id="diffContainer" spacing="1" />
+            </ScrollPane>
         </VBox>
     </center>
     <right>
