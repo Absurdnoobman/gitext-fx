@@ -13,6 +13,7 @@
         <MenuBar>
             <Menu text="File">
                 <MenuItem text="Add File" onAction="#onAddFilePressed"/>
+                <MenuItem text="Use this version" onAction="#onUseThisVersionButtonPressed" />
                 <SeparatorMenuItem />
                 <MenuItem text="Open File List (first menu)" onAction="#onOpenFileListMenuPressed"/>
             </Menu>

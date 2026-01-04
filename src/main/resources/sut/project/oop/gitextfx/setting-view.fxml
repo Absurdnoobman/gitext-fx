@@ -27,12 +27,10 @@
                 <Label text="Create a full version every"/>
                 <Spinner fx:id="fullVersionIntervalSpinner" prefWidth="70">
                     <tooltip>
-                        <Tooltip text="A full version stores the entire file.
-Versions in between only store changes.
-This does not affect version history or diffs."/>
+                        <Tooltip text="A full version stores the entire file. Versions in between only store changes. This does not affect existing file history or diffs."/>
                     </tooltip>
                 </Spinner>
-                <Label text="saves"/>
+                <Label text="saves for new added file."/>
             </HBox>
         </VBox>
     </ScrollPane>

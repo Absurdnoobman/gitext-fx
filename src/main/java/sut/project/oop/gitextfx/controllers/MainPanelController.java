@@ -77,11 +77,9 @@ public class MainPanelController {
         tags.clear();
 
         try {
-
             var ts = versionService.loadTags((int) fileId);
             tags.addAll(ts);
             viewTags.addAll(ts);
-
         } catch (Exception e) {
             ErrorDialog.showDevException(e, "Fatal error: fail to load all tags");
         }
@@ -298,6 +296,11 @@ public class MainPanelController {
             renderVersion(version_id);
 
             isEdited.set(true);
+
+            var delete_file = SettingManager.getDeleteNewVersionFile().orElse(false);
+            if (delete_file) {
+                Files.deleteIfExists(file.toPath());
+            }
 
         } catch (Exception e) {
             ErrorDialog.showDevException(e, "Failed to create version.");
