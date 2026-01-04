@@ -69,13 +69,13 @@ public class GitextApp extends Application {
             return false;
         }
 
-        if (!Files.exists(Path.of(AppPath.APP_PATH)) && !new File(AppPath.DB_PATH).mkdir()) {
+        if (!Files.exists(Path.of(AppPath.APP_PATH)) && !new File(AppPath.APP_PATH).mkdir()) {
             ErrorDialog.showException("Cannot Create a dir");
             return false;
         }
 
         var setting = new Properties();
-        setting.setProperty("deleteNewVersionFile", "true");
+        setting.setProperty("deleteNewVersionFile", "false");
         setting.setProperty("defaultNonDeltaInterval", "5");
 
         setting.storeToXML(new FileOutputStream(AppPath.PROP_PATH), "new setting file.");
@@ -83,53 +83,6 @@ public class GitextApp extends Application {
         return true;
     }
 
-    /// Seed Database
-    private void seedDB() throws SQLException, IOException {
-        try (var db = new Schema()){
-            db.execute("""
-                    DROP TABLE Versions;
-                    """);
-            db.execute("""
-                    DROP TABLE Files;
-                    """);
-
-            db.execute("""
-                    CREATE TABLE IF NOT EXISTS Files (
-                        id INTEGER PRIMARY KEY AUTOINCREMENT,
-                        file_path TEXT NOT NULL,
-                        lasted_edit DATETIME,
-                        non_delta_interval INTEGER DEFAULT 5
-                    );
-                    """);
-            db.execute("""
-                    CREATE TABLE IF NOT EXISTS Versions (
-                        id INTEGER PRIMARY KEY AUTOINCREMENT,
-                        file_id INTEGER REFERENCES Files(id) ON DELETE Cascade,
-                        parent_id INTEGER,
-                        tag VARCHAR(12) NOT NULL,
-                        is_delta BOOLEAN NOT NULL,
-                        compressed BLOB NOT NULL,
-                        created_at DATETIME NOT NULL
-                    );
-                    """);
-        } catch (SQLException e) {
-            ErrorDialog.showDevException(e, "Fatal Error: Can not seed DB.");
-            return;
-        }
-
-        store.insertNewFileRecord("C:\\Users\\walter\\Documents\\New folder\\text file.txt", LocalDateTime.now(), 5);
-
-        FileReader reader = new FileReader("C:\\Users\\walter\\Documents\\New folder\\text file.txt");
-        String raw = reader.readAllAsString();
-        reader.close();
-
-        byte[] compressed = CompressionUtil.compress(raw);
-
-        var versionStore = new SqliteStore();
-
-        versionStore.insertVersion(1, false, compressed, null, "First Version", LocalDateTime.now());
-
-    }
 
     @Override
     public void start(Stage stage) throws IOException {
@@ -142,13 +95,6 @@ public class GitextApp extends Application {
         } catch (IOException e) {
             ErrorDialog.showDevException(e , "Can not the necessary prepare to create app folder and setting file.");
             return;
-        }
-
-        // In dev only.
-        try {
-            seedDB();
-        } catch (SQLException e) {
-            ErrorDialog.showDevException(e, "Can not seed.");
         }
 
         var fxmlLoader = new FXMLLoader(GitextApp.class.getResource("welcome-view.fxml"));

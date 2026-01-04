@@ -184,4 +184,14 @@ public class SqliteStore implements IVersionStore, IFileRecordStore {
                     """, id);
         }
     }
+
+    @Override
+    public void updateLastedEdit(int id, LocalDateTime time) throws SQLException {
+        try (var db = new Schema()) {
+            db.execute(
+                    "UPDATE Files SET lasted_edit = ? WHERE id = ?",
+                    time.toString(), id
+            );
+        }
+    }
 }

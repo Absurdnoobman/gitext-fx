@@ -7,7 +7,4 @@ public class SettingController {
     @FXML
     public CheckBox deleteFileCheckBox;
 
-    private void onReady() {
-        
-    }
 }

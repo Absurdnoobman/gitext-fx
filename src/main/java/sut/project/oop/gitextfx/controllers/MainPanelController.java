@@ -4,6 +4,8 @@ import com.github.difflib.DiffUtils;
 import com.github.difflib.UnifiedDiffUtils;
 import com.github.difflib.patch.Patch;
 import com.github.difflib.patch.PatchFailedException;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
@@ -63,6 +65,8 @@ public class MainPanelController {
 
     private VersionService versionService;
 
+    private BooleanProperty isEdited = new SimpleBooleanProperty(false);
+
     public void onReady(Path filepath, long file_id, Stage stage){
         this.versionService = new VersionService(new SqliteStore());
         this.stage = stage;
@@ -94,6 +98,17 @@ public class MainPanelController {
 
         searchVersionField.textProperty().addListener((_, _,_) -> onSearchTextFieldTextChanged());
 
+        isEdited.addListener(_ -> updateLastedEdit());
+
+    }
+
+    private void updateLastedEdit() {
+        var store = new SqliteStore();
+        try {
+            store.updateLastedEdit((int) fileId, LocalDateTime.now());
+        } catch (SQLException e) {
+            ErrorDialog.showException("Can not update lasted edit time.");
+        }
     }
 
     private void onSearchTextFieldTextChanged() {
@@ -282,6 +297,8 @@ public class MainPanelController {
             renderList();
             renderVersion(version_id);
 
+            isEdited.set(true);
+
         } catch (Exception e) {
             ErrorDialog.showDevException(e, "Failed to create version.");
         }
@@ -361,12 +378,12 @@ public class MainPanelController {
             renderList();
             renderVersion(tags.getLast().row_id());
 
+            isEdited.set(true);
+
         } catch (Exception e) {
             ErrorDialog.showDevException(e, "failed.");
         }
     }
-
-
 
     @FXML
     private void onUseThisVersionButtonPressed() {

@@ -15,4 +15,6 @@ public interface IFileRecordStore {
 
     void deleteFileRecord(int id) throws SQLException;
 
+    void updateLastedEdit(int id, LocalDateTime time) throws SQLException;
+
 }
