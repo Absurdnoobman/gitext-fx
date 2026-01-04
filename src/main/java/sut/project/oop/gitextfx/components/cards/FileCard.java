@@ -8,13 +8,10 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.*;
-import javafx.scene.text.Text;
-import javafx.scene.text.TextAlignment;
 import javafx.stage.Stage;
 import sut.project.oop.gitextfx.AppDateFormat;
 import sut.project.oop.gitextfx.GitextApp;
 import sut.project.oop.gitextfx.clazz.ErrorDialog;
-import sut.project.oop.gitextfx.clazz.Schema;
 import sut.project.oop.gitextfx.clazz.SqliteStore;
 import sut.project.oop.gitextfx.controllers.MainPanelController;
 import sut.project.oop.gitextfx.controllers.WelcomeController;
@@ -63,14 +60,14 @@ public class FileCard extends HBox {
 
         /* ───────── Action ───────── */
         Button manageButton = new Button("Manage");
-        Button deleteButton = new Button("Delete");
+        Button forgetButton = new Button("Forget");
 
         indexBox.getStyleClass().add("file-card-index-box");
         indexLabel.getStyleClass().add("file-card-index");
         fileName.getStyleClass().add("file-card-title");
         lastEdit.getStyleClass().add("file-card-subtitle");
         manageButton.getStyleClass().add("file-card-action");
-        deleteButton.getStyleClass().add("file-card-action-destructive");
+        forgetButton.getStyleClass().add("file-card-action-destructive");
 
         manageButton.setOnAction(_ -> {
             try {
@@ -93,7 +90,7 @@ public class FileCard extends HBox {
             } catch (IOException _) {}
         });
 
-        deleteButton.setOnAction(_ -> {
+        forgetButton.setOnAction(_ -> {
             try {
                 var store = new SqliteStore();
                 var version_tags = store.getVersionTagsOf((int) file.getId());
@@ -117,6 +114,6 @@ public class FileCard extends HBox {
             alert.showAndWait();
         });
 
-        getChildren().addAll(indexBox, infoBox, spacer, manageButton, deleteButton);
+        getChildren().addAll(indexBox, infoBox, spacer, manageButton, forgetButton);
     }
 }
