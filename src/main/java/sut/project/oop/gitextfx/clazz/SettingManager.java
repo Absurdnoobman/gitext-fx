@@ -37,4 +37,27 @@ public class SettingManager {
         }
     }
 
+    public static Optional<Boolean> getDeleteNewVersionFile() {
+        try {
+            var result = read("deleteNewVersionFile", String.valueOf(false));
+            var result_b = Boolean.parseBoolean(result);
+
+            return Optional.of(result_b);
+        } catch (IOException e) {
+            return Optional.empty();
+        }
+    }
+
+    public static boolean setDeleteNewVersionFile(boolean new_value){
+        Properties settings = new Properties();
+        settings.setProperty("deleteNewVersionFile", String.valueOf(new_value));
+        try {
+            settings.storeToXML(new FileOutputStream(AppPath.PROP_PATH), LocalDateTime.now().toString());
+
+            return true;
+        } catch (IOException e) {
+            return false;
+        }
+    }
+
 }

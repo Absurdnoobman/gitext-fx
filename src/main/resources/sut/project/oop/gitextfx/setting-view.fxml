@@ -17,9 +17,23 @@
     </padding>
 
     <ScrollPane VBox.vgrow="ALWAYS">
-        <GridPane hgap="10" vgap="10">
-            <CheckBox fx:id="deleteFileCheckBox"/>
-            <Text GridPane.rowIndex="0" GridPane.columnIndex="1">Delete a new version file after upload as a new version.</Text>
-        </GridPane>
+        <VBox VBox.vgrow="ALWAYS" spacing="6">
+            <GridPane hgap="10" vgap="10">
+                <CheckBox fx:id="deleteFileCheckBox"/>
+                <Text GridPane.rowIndex="0" GridPane.columnIndex="1">Delete a new version file after upload as a new version.</Text>
+            </GridPane>
+
+            <HBox spacing="6" alignment="CENTER_LEFT">
+                <Label text="Create a full version every"/>
+                <Spinner fx:id="fullVersionIntervalSpinner" prefWidth="70">
+                    <tooltip>
+                        <Tooltip text="A full version stores the entire file.
+Versions in between only store changes.
+This does not affect version history or diffs."/>
+                    </tooltip>
+                </Spinner>
+                <Label text="saves"/>
+            </HBox>
+        </VBox>
     </ScrollPane>
 </VBox>

@@ -65,7 +65,7 @@ public class MainPanelController {
 
     private VersionService versionService;
 
-    private BooleanProperty isEdited = new SimpleBooleanProperty(false);
+    private final BooleanProperty isEdited = new SimpleBooleanProperty(false);
 
     public void onReady(Path filepath, long file_id, Stage stage){
         this.versionService = new VersionService(new SqliteStore());
