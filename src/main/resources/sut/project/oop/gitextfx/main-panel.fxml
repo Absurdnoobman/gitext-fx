@@ -34,7 +34,7 @@
             <Separator />
             <Text text="Version History" style="-fx-font-size: 14px; -fx-font-weight: bold;"/>
             <TextField fx:id="searchVersionField" promptText="Search version" />
-            <VBox fx:id="VersionsList" VBox.vgrow="ALWAYS"/>
+            <VBox fx:id="VersionsList" VBox.vgrow="ALWAYS" spacing="2"/>
             <Separator/>
             <Button text="Delete all version forget this file" style="-fx-background-color: -color-danger-fg; -fx-text-fill: -color-light" onAction="#onDeleteFileButtonPressed"/>
         </VBox>
@@ -46,7 +46,7 @@
             </padding>
 
             <!-- diff text area -->
-            <ScrollPane fx:id="diffScroll" fitToWidth="true" style="-fx-border-color: -color-dark;  -fx-border-radius: 0.5px; -fx-border-radius: 6px" VBox.vgrow="ALWAYS">
+            <ScrollPane fx:id="diffScroll" fitToWidth="true" style="-fx-border-color: -color-dark; -fx-border-radius: 6px" VBox.vgrow="ALWAYS">
                 <padding>
                     <Insets top="5" />
                 </padding>

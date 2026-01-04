@@ -19,6 +19,7 @@ import sut.project.oop.gitextfx.AppDateFormat;
 import sut.project.oop.gitextfx.AppPath;
 import sut.project.oop.gitextfx.GitextApp;
 import sut.project.oop.gitextfx.clazz.*;
+import sut.project.oop.gitextfx.components.cards.VersionCard;
 import sut.project.oop.gitextfx.models.Version;
 import sut.project.oop.gitextfx.models.VersionTag;
 
@@ -132,9 +133,9 @@ public class MainPanelController {
         VersionsList.getChildren().clear();
 
         for (var v: viewTags) {
-            var txt = new Text(v.tag());
+            var card = new VersionCard(v);
 
-            txt.setOnMouseClicked(_ -> {
+            card.setOnMouseClicked(_ -> {
                 try {
                     renderVersion(v.row_id());
                 } catch (Exception e) {
@@ -142,7 +143,7 @@ public class MainPanelController {
                 }
             });
 
-            VersionsList.getChildren().add(txt);
+            VersionsList.getChildren().add(card);
         }
     }
 
@@ -158,7 +159,9 @@ public class MainPanelController {
 
             var text = CompressionUtil.decompress(this_version.getCompressed());
 
-            if (history.versionCount() <= 1) {
+            var previous = history.findPreviousOf(id);
+
+            if (history.versionCount() <= 1 || previous.isEmpty()) {
                 renderDiff(text.lines().toList());
 
                 versionValue.setText(this_version.getTag());
@@ -170,9 +173,7 @@ public class MainPanelController {
                 return;
             }
 
-            var previous = history.findPreviousOf(id);
-
-            String old_text = resolver.resolve((int) fileId, previous.row_id());
+            String old_text = resolver.resolve((int) fileId, previous.get().row_id());
 
             Patch<String> patch;
             if (this_version.isDelta()) {
@@ -243,6 +244,8 @@ public class MainPanelController {
     }
 
     private String get_diff_style(String line) {
+        if (line.isEmpty()) return "-fx-fill: #24292e; -fx-font-family: 'Consolas';";
+
         return switch (line.charAt(0)) {
             case '+'-> "-fx-fill: #22863a; -fx-font-family: 'Consolas';";
             case '-' -> "-fx-fill: #b31d28; -fx-font-family: 'Consolas';";

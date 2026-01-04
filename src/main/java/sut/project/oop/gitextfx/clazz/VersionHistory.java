@@ -3,6 +3,8 @@ package sut.project.oop.gitextfx.clazz;
 import sut.project.oop.gitextfx.models.VersionTag;
 
 import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.Optional;
 
 public class VersionHistory {
 
@@ -36,11 +38,15 @@ public class VersionHistory {
                 .toList();
     }
 
-    public VersionTag findPreviousOf(int id) {
-        return versions.stream()
-                .filter(v -> v.row_id() < id)
-                .toList()
-                .getLast();
+    public Optional<VersionTag> findPreviousOf(int id) {
+         try {
+             var result = versions.stream()
+                     .filter(v -> v.row_id() < id)
+                     .toList()
+                     .getLast();
+
+             return Optional.of(result);
+         } catch (NoSuchElementException _) {return Optional.empty();}
     }
 
     public int versionCount() {

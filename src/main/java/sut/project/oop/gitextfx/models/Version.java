@@ -1,11 +1,8 @@
 package sut.project.oop.gitextfx.models;
 
-import sut.project.oop.gitextfx.AppDateFormat;
-
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
-import java.util.Optional;
 
 public class Version extends Model {
     private int id;

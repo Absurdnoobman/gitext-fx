@@ -1,0 +1,15 @@
+.version-card {
+    -fx-background-color: -color-bg-subtle;
+    -fx-background-radius: 8;
+    -fx-border-radius: 8;
+    -fx-border-color: -color-border-muted;
+}
+
+.version-card:hover {
+    -fx-background-color: -color-bg-muted;
+}
+
+.version-card-label {
+    -fx-font-size: 12px;
+    -fx-font-weight: 600;
+}

@@ -15,13 +15,8 @@ public class Schema implements AutoCloseable {
         connection = DriverManager.getConnection("jdbc:sqlite:" + path + "?busy_timeout=5000");
     }
 
-    // SELECT raw SQL
-    public ResultSet selectRaw(String sql) throws SQLException {
-        Statement stmt = connection.createStatement();
-        return stmt.executeQuery(sql);
-    }
-
-    public ResultSet selectRaw(String sql, Object ...args) throws SQLException {
+    // Non-SELECT raw SQL
+    public void execute(String sql, Object ...args) throws SQLException {
         PreparedStatement stmt = connection.prepareStatement(sql);
 
         if (args != null) {
@@ -30,25 +25,7 @@ public class Schema implements AutoCloseable {
             }
         }
 
-        return stmt.executeQuery();
-    }
-
-    // Non-SELECT raw SQL
-    public boolean execute(String sql, Object ...args) {
-        try {
-            PreparedStatement stmt = connection.prepareStatement(sql);
-
-            if (args != null) {
-                for (int i = 1 ; i <= args.length; i++) {
-                    stmt.setObject(i, args[i - 1]);
-                }
-            }
-
-            stmt.execute();
-        } catch (SQLException e) {
-            return false;
-        }
-        return true;
+        stmt.execute();
     }
 
     ///  @return id of inserted row or -1 if failed to insert.

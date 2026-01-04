@@ -22,6 +22,7 @@ import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiPredicate;
 
@@ -179,6 +180,12 @@ public class WelcomeController {
 
         if (file_id == -1) return;
 
+        scene.getStylesheets().add(
+                Objects.requireNonNull(
+                                GitextApp.class.getResource("version-card.css"))
+                        .toExternalForm()
+        );
+
         final Path path = Path.of(full_path);
         ((MainPanelController) loader.getController()).onReady(path, file_id, new_stage);
         new_stage.setTitle("File: %s".formatted(path.getFileName()));
@@ -204,10 +211,7 @@ public class WelcomeController {
 
     }
 
-    private void sort(
-            List<FileRecord> list,
-            BiPredicate<FileRecord, FileRecord> shouldSwap
-    ) {
+    private void sort(List<FileRecord> list, BiPredicate<FileRecord, FileRecord> shouldSwap) {
         int n = list.size();
         boolean swapped;
 

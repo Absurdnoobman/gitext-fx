@@ -23,6 +23,7 @@ import sut.project.oop.gitextfx.models.FileRecord;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.sql.SQLException;
+import java.util.Objects;
 
 public class FileCard extends HBox {
     public FileCard(int index, FileRecord file, WelcomeController ctrl) {
@@ -77,6 +78,11 @@ public class FileCard extends HBox {
                 FXMLLoader loader = new FXMLLoader(GitextApp.class.getResource("main-panel.fxml"));
 
                 Scene scene = new Scene(loader.load());
+                scene.getStylesheets().add(
+                        Objects.requireNonNull(
+                                        GitextApp.class.getResource("version-card.css"))
+                                .toExternalForm()
+                );
                 ((MainPanelController) loader.getController()).onReady(Path.of(file.getFilePath()), file.getId(), newStage);
 
                 newStage.setTitle("File: " + Path.of(file.getFilePath()).getFileName());
