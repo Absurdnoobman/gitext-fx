@@ -16,4 +16,5 @@ public final class PatchService {
     public Patch<String> parseFromStr(String diffStr) {
         return UnifiedDiffUtils.parseUnifiedDiff(Arrays.asList(diffStr.split("\n", -1)));
     }
+
 }

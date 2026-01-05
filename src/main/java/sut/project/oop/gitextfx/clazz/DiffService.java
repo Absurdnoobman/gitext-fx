@@ -3,7 +3,6 @@ package sut.project.oop.gitextfx.clazz;
 import com.github.difflib.DiffUtils;
 import com.github.difflib.UnifiedDiffUtils;
 import sut.project.oop.gitextfx.interfaces.IVersionStore;
-import sut.project.oop.gitextfx.models.VersionTag;
 
 import java.util.List;
 

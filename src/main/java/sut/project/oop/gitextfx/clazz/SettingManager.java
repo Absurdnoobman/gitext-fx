@@ -2,7 +2,9 @@ package sut.project.oop.gitextfx.clazz;
 
 import sut.project.oop.gitextfx.AppPath;
 
-import java.io.*;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.Properties;
