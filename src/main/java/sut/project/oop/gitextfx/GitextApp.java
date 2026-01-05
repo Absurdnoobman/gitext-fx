@@ -113,7 +113,7 @@ public class GitextApp extends Application {
             ErrorDialog.showDevException(e, "Fatal Error: can not launch the app.");
         }
 
-        stage.setTitle("demo");
+        stage.setTitle("Welcome");
         stage.setScene(scene);
         stage.show();
 

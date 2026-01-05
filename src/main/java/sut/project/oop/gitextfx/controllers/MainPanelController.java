@@ -180,6 +180,10 @@ public class MainPanelController {
                 versionValue.setText(this_version.getTag());
                 createdAtValue.setText(this_version.getCreatedAt().format(AppDateFormat.DISPLAY));
                 typeValue.setText(this_version.isDelta() ? "Delta" : "Real");
+                typeValue.setTooltip(this_version.isDelta()
+                        ? new Tooltip("Stores only the changes since the last real version.")
+                        : new Tooltip("Stores the entire file as a full version snapshot.")
+                );
 
                 SelectedVersion = this_version;
 
