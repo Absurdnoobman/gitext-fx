@@ -13,8 +13,10 @@ import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
+import javafx.scene.text.TextFlow;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import sut.project.oop.gitextfx.AppDateFormat;
@@ -200,8 +202,8 @@ public class MainPanelController {
             }
 
             var unifiedDiff = UnifiedDiffUtils.generateUnifiedDiff(
-                    "",
-                    "",
+                    previous.get().tag(),
+                    this_version.getTag(),
                     old_text.lines().toList(),
                     patch,
                     3
@@ -248,13 +250,12 @@ public class MainPanelController {
                 newLine++;
             }
 
-            Text text = new Text(line);
-            text.setStyle(get_diff_style(line));
+            Text t = new Text(line);
+            t.setStyle(get_diff_style(line));
 
-            HBox row = new HBox(8, lineNumber, text);
+            HBox row = new HBox(8, lineNumber, t);
             row.setAlignment(Pos.TOP_LEFT);
             row.setPadding(new Insets(0, 4, 0, 4));
-
 
             diffContainer.getChildren().add(row);
         }

@@ -24,10 +24,10 @@
             </GridPane>
 
             <HBox spacing="6" alignment="CENTER_LEFT">
-                <Label text="Create a full version every"/>
+                <Label text="Create a full (Real) version every"/>
                 <Spinner fx:id="fullVersionIntervalSpinner" prefWidth="70">
                     <tooltip>
-                        <Tooltip text="A full version stores the entire file. Versions in between only store changes. This does not affect existing file history or diffs."/>
+                        <Tooltip text="A full (Real) version stores the entire file. Versions in between only store changes. This does not affect existing file history or diffs."/>
                     </tooltip>
                 </Spinner>
                 <Label text="saves for new added file."/>

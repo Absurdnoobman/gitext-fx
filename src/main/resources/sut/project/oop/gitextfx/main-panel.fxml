@@ -51,7 +51,7 @@
                 <padding>
                     <Insets top="5" />
                 </padding>
-                <VBox fx:id="diffContainer" spacing="1" />
+                <VBox fx:id="diffContainer" spacing="1" VBox.vgrow="ALWAYS" />
             </ScrollPane>
         </VBox>
     </center>
