@@ -472,7 +472,6 @@ public class MainPanelController {
         }
 
         Stage new_stage = new Stage();
-
         FXMLLoader loader = new FXMLLoader(GitextApp.class.getResource("main-panel.fxml"));
 
         Scene scene;

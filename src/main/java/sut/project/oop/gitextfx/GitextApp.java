@@ -82,7 +82,6 @@ public class GitextApp extends Application {
         return true;
     }
 
-
     @Override
     public void start(Stage stage) throws IOException {
         Application.setUserAgentStylesheet(new PrimerLight().getUserAgentStylesheet());
